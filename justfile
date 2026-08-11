@@ -2,9 +2,16 @@
 #  Cache Manager — 开发常用命令
 #  需要先安装 just: https://github.com/casey/just
 #  安装:  Windows scoop/choco/cargo · macOS brew install just · Linux apt/cargo
-#  跨平台: macOS / Linux / Windows 均可执行（release 依赖 bash，
-#          Windows 需 Git Bash 将 bash 加入 PATH）
+#  跨平台: macOS / Linux / Windows 均可执行（release 依赖 sh）
+#
+#  若 Windows 报错 "could not find the shell sh":
+#   1) 安装 Git for Windows (https://git-scm.com)
+#   2) 确认 Git\bin 在 PATH（系统/用户环境变量）
+#   3) 重开终端（PATH 变更需新终端才生效）
 # ─────────────────────────────────────────────
+
+# 显式指定 shell：Unix 原生 sh；Windows 依赖 Git Bash 提供的 sh.exe
+set shell := ["sh", "-cu"]
 
 # 显示可用命令
 default:
