@@ -1,0 +1,25 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+src-tauri/target
+src-tauri/gen/schemas
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# 构建/调试临时产物
+*.log
+*.rdb
+*.tmp
+*.bak
+build.log
+vite.log
+nodes-*.conf
+dom*.html
+app-icon.png
+scripts/*.ps1
+scripts/mock-*.cjs
+scripts/cdp-*.cjs
+/release/*.exe
