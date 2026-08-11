@@ -116,6 +116,20 @@ npm install
 npm run tauri dev
 ```
 
+### Using just (recommended)
+
+[just](https://github.com/casey/just) is used to unify common dev commands. After installing just:
+
+```bash
+just dev       # dev run (hot reload)
+just build     # release build (portable single-file exe)
+just release   # copy exe to release/CacheManager.exe
+just typecheck # frontend type check
+just test      # backend unit tests
+```
+
+Run `just --list` to see all recipes (build / tests / icon generation, etc.).
+
 ### Build (portable single file)
 
 ```bash

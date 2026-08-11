@@ -116,6 +116,20 @@ npm install
 npm run tauri dev
 ```
 
+### 使用 just 快捷命令（推荐）
+
+[just](https://github.com/casey/just) 已用于统一常用开发命令，安装 just 后：
+
+```bash
+just dev       # 调试运行（热重载）
+just build     # 发布构建（免安装单文件 exe）
+just release   # 把 exe 复制到 release/CacheManager.exe
+just typecheck # 前端类型检查
+just test      # 后端单元测试
+```
+
+运行 `just --list` 查看全部命令（构建 / 测试 / 图标生成等）。
+
 ### 构建发布包（免安装单文件）
 
 ```bash
