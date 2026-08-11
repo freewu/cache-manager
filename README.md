@@ -1,6 +1,6 @@
 # Cache Manager 管理工具
 
-> 💡 **本项目全程使用 [pi agent](https://github.com/earendil-works/pi-coding-agent) + DeepSeek V4 Flash 进行开发**
+> 💡 **本项目全程使用 [pi agent](https://github.com/earendil-works/pi) + DeepSeek V4 Flash 进行开发**
 
 基于 **Tauri 2 + Rust + Vue 3** 的桌面缓存管理工具，同时支持 **Redis** 与 **Memcached**。
 Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
