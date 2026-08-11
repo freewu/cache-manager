@@ -142,6 +142,24 @@ npm run tauri build
 > 版本号：当前版本 **v0.1.1**。版本号统一维护在三处（保持一致）：`Cargo.toml` / `tauri.conf.json` / `package.json`。
 > 构建后 exe 的右键属性 → 详细信息会自动显示文件版本/产品版本（由 tauri-build 从 `Cargo.toml` 写入 VERSIONINFO 资源）。
 
+### 发布产物（`just release`）
+
+```bash
+just build    # 先构建 exe
+just release  # 生成发布产物
+```
+
+生成到 `release/` 目录：
+
+```
+CacheManager-0.1.1.exe        # 带版本号的免安装 exe
+CacheManager-0.1.1.exe.md5    # exe 的 MD5 校验
+CacheManager-0.1.1.exe.sha1   # exe 的 SHA1 校验
+source-0.1.1.tar.gz           # 源码包（排除 node_modules/target/.git/release/dist 等）
+source-0.1.1.tar.gz.md5       # 源码包 MD5
+source-0.1.1.tar.gz.sha1      # 源码包 SHA1
+```
+
 ### 运行测试
 
 后端包含针对真实 Redis 的冒烟测试（默认 `127.0.0.1:6379`）：

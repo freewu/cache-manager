@@ -141,6 +141,24 @@ The output is a **portable single file** `src-tauri/target/release/cache-manager
 > Version: current version is **v0.1.1**. The version number is maintained in three places (keep them in sync): `Cargo.toml` / `tauri.conf.json` / `package.json`.
 > After building, right-click → Properties → Details on the exe shows the file/product version (written by tauri-build from `Cargo.toml` into the VERSIONINFO resource).
 
+### Release artifacts (`just release`)
+
+```bash
+just build    # build the exe first
+just release  # generate release artifacts
+```
+
+Generated into `release/`:
+
+```
+CacheManager-0.1.1.exe        # versioned portable exe
+CacheManager-0.1.1.exe.md5    # MD5 checksum of the exe
+CacheManager-0.1.1.exe.sha1   # SHA1 checksum of the exe
+source-0.1.1.tar.gz           # source tarball (excludes node_modules/target/.git/release/dist, etc.)
+source-0.1.1.tar.gz.md5       # MD5 of the tarball
+source-0.1.1.tar.gz.sha1      # SHA1 of the tarball
+```
+
 ### Tests
 
 Backend smoke tests against a real Redis (default `127.0.0.1:6379`):

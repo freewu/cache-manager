@@ -5,6 +5,8 @@
 #  WSL:      apt install just（npm 相关命令建议在 Windows 侧 cmd 运行）
 # ─────────────────────────────────────────────
 
+set shell := ["cmd.exe", "/c"]
+
 # 显示可用命令
 default:
     @just --list
@@ -21,9 +23,9 @@ dev:
 build:
     npm run tauri build
 
-# 发布后把 exe 复制到 release/CacheManager.exe
+# 发布：exe 加版本号 + 源码打包 source-<版本号>.tar.gz + 生成 .md5/.sha1 hash
 release:
-    powershell -NoProfile -Command "Copy-Item -Force src-tauri/target/release/cache-manager.exe release/CacheManager.exe"
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1
 
 # 前端单独构建（vite 预构建，tauri build 内部也会执行）
 build-fe:
