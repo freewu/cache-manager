@@ -36,4 +36,17 @@ foreach ($file in @($exeDest, $tgz)) {
     Set-Content -Path "$file.sha1" -Value "$sha1  $name" -Encoding ASCII
     Write-Host "[release] generated $file.md5 / $file.sha1"
 }
+
+# 4) git tag (v<version>) + push to remote
+$tag = "v$version"
+$tagExists = git tag --list $tag
+if ($tagExists) {
+    Write-Host "[release] git tag $tag already exists, skipped"
+} else {
+    git tag $tag
+    if ($LASTEXITCODE -ne 0) { throw "git tag $tag creation failed" }
+    git push origin $tag
+    if ($LASTEXITCODE -ne 0) { throw "git push tag $tag failed" }
+    Write-Host "[release] created and pushed git tag $tag"
+}
 Write-Host "[release] done"

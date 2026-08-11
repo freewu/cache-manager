@@ -159,6 +159,8 @@ source-0.1.1.tar.gz.md5       # MD5 of the tarball
 source-0.1.1.tar.gz.sha1      # SHA1 of the tarball
 ```
 
+It also creates and pushes a git tag matching the version (`v0.1.1`, skipped automatically if it already exists).
+
 ### Tests
 
 Backend smoke tests against a real Redis (default `127.0.0.1:6379`):
