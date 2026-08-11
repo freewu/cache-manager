@@ -2,6 +2,8 @@
 
 > 💡 **本项目全程使用 [pi agent](https://github.com/earendil-works/pi) + DeepSeek V4 Flash 进行开发**
 
+[English](README.en.md) | **中文**
+
 基于 **Tauri 2 + Rust + Vue 3** 的桌面缓存管理工具，同时支持 **Redis** 与 **Memcached**。
 Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
 
@@ -57,6 +59,16 @@ Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
 - 托盘菜单：显示主窗口、**已保存连接的快速连接**（带 Redis/Memcached 类型图标）、退出
 - 独立设置页面（托盘可直达）：**浅色 / 深色 / 跟随系统** 三档主题、关闭行为、**默认导出目录**
 - 单实例运行（重复启动自动聚焦已有窗口）
+
+## 界面预览
+
+| Redis 数据浏览 | Memcached 数据浏览 |
+| --- | --- |
+| ![Redis 数据浏览](docs/images/redis-date.png) | ![Memcached 数据浏览](docs/images/memcache-data.png) |
+
+| 设置页面 | 系统托盘 |
+| --- | --- |
+| ![设置页面](docs/images/settingpng.png) | ![系统托盘](docs/images/tray.png) |
 
 ## 技术架构
 
