@@ -123,12 +123,14 @@ npm run tauri dev
 ```bash
 just dev       # dev run (hot reload)
 just build     # release build (portable single-file exe)
-just release   # copy exe to release/CacheManager.exe
+just release   # generate release artifacts (exe + source tarball + hashes + git tag)
 just typecheck # frontend type check
 just test      # backend unit tests
 ```
 
 Run `just --list` to see all recipes (build / tests / icon generation, etc.).
+
+> **Cross-platform**: the justfile works on macOS / Linux / Windows. On Windows, install [Git for Windows](https://git-scm.com) and add `Git\bin` to PATH (provides `sh`, which just uses to run commands); macOS / Linux work out of the box.
 
 ### Build (portable single file)
 

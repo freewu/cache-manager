@@ -20,7 +20,6 @@ nodes-*.conf
 dom*.html
 app-icon.png
 scripts/*.ps1
-!scripts/release.ps1
 scripts/mock-*.cjs
 scripts/cdp-*.cjs
 /release/*.exe

@@ -123,12 +123,14 @@ npm run tauri dev
 ```bash
 just dev       # 调试运行（热重载）
 just build     # 发布构建（免安装单文件 exe）
-just release   # 把 exe 复制到 release/CacheManager.exe
+just release   # 生成发布产物（exe + 源码包 + hash + git tag）
 just typecheck # 前端类型检查
 just test      # 后端单元测试
 ```
 
 运行 `just --list` 查看全部命令（构建 / 测试 / 图标生成等）。
+
+> **跨平台**：justfile 兼容 macOS / Linux / Windows。Windows 需安装 [Git for Windows](https://git-scm.com) 且将 `Git\bin` 加入 PATH（提供 `sh`，just 依赖它执行命令）；macOS / Linux 开箱即用。
 
 ### 构建发布包（免安装单文件）
 

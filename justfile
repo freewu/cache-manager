@@ -1,11 +1,10 @@
 # ─────────────────────────────────────────────
 #  Cache Manager — 开发常用命令
 #  需要先安装 just: https://github.com/casey/just
-#  Windows:  scoop install just / choco install just / cargo install just
-#  WSL:      apt install just（npm 相关命令建议在 Windows 侧 cmd 运行）
+#  安装:  Windows scoop/choco/cargo · macOS brew install just · Linux apt/cargo
+#  跨平台: macOS / Linux / Windows 均可执行（release 依赖 bash，
+#          Windows 需 Git Bash 将 bash 加入 PATH）
 # ─────────────────────────────────────────────
-
-set shell := ["cmd.exe", "/c"]
 
 # 显示可用命令
 default:
@@ -23,9 +22,10 @@ dev:
 build:
     npm run tauri build
 
-# 发布：exe 加版本号 + 源码打包 source-<版本号>.tar.gz + 生成 .md5/.sha1 hash
+# 发布：exe 加版本号 + 源码打包 source-<版本号>.tar.gz + 生成 .md5/.sha1 hash + git tag v<版本号>
+# （跨平台 POSIX sh 脚本：macOS / Linux / Windows Git Bash）
 release:
-    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1
+    sh scripts/release.sh
 
 # 前端单独构建（vite 预构建，tauri build 内部也会执行）
 build-fe:
