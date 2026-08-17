@@ -80,13 +80,11 @@
         @change="onImportFile"
       />
       <div class="conn-import-export">
-        <n-button size="small" secondary block :title="t('connections.exportTitle')" @click="doExport">
+        <n-button size="small" secondary quaternary :title="t('connections.exportTitle')" @click="doExport">
           <template #icon><n-icon><CloudDownloadOutline /></n-icon></template>
-          {{ t("common.export") }}
         </n-button>
-        <n-button size="small" secondary block :title="t('connections.importTitle')" @click="triggerImport">
+        <n-button size="small" secondary quaternary :title="t('connections.importTitle')" @click="triggerImport">
           <template #icon><n-icon><CloudUploadOutline /></n-icon></template>
-          {{ t("common.import") }}
         </n-button>
       </div>
     </div>
@@ -627,13 +625,19 @@ function onSaved() {
   padding-top: 10px;
 }
 
-/* 连接列表最下方的导入 / 导出 */
+/* 连接列表最下方的导入 / 导出（图标形式） */
 .conn-import-export {
   margin-top: auto;
   display: flex;
+  justify-content: space-around;
   gap: 8px;
   border-top: 1px solid rgba(128, 128, 128, 0.12);
   padding-top: 10px;
+}
+.conn-import-export .n-button {
+  flex: 1;
+  max-width: 90px;
+  margin: 0;
 }
 
 /* 右栏 */
