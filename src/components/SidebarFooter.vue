@@ -11,8 +11,8 @@
       <n-button
         size="small"
         secondary
+        block
         :title="t('connections.exportTitle')"
-        style="flex: 1"
         @click="doExport"
       >
         <template #icon><n-icon><CloudDownloadOutline /></n-icon></template>
@@ -21,8 +21,8 @@
       <n-button
         size="small"
         secondary
+        block
         :title="t('connections.importTitle')"
-        style="flex: 1"
         @click="triggerImport"
       >
         <template #icon><n-icon><CloudUploadOutline /></n-icon></template>
@@ -123,6 +123,11 @@ onBeforeUnmount(() => {
   padding: 10px 12px;
   border-top: 1px solid rgba(128, 128, 128, 0.12);
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
+}
+.sidebar-footer .n-button {
+  width: 100%;
+  margin: 0;
 }
 </style>

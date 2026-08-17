@@ -19,18 +19,25 @@ use crate::redisx::{STATUS_CONNECTED, STATUS_CONNECTING, STATUS_ERROR};
 
 // ==================== Memcached 文本协议客户端 ====================
 
+/// 判断是否达响应结束（END 或各类错误行），避免服务端不支持某命令时循环永久阻塞
+fn is_response_end(line: &str) -> bool {
+    matches!(line, "END" | "ERROR" | "CLIENT_ERROR" | "SERVER_ERROR" | "NOT_FOUND")
+}
+
 struct MemcachedInner {
     stream: TcpStream,
     buf: Vec<u8>,
 }
 
 impl MemcachedInner {
+    /// 读取响应超时（避免服务端不返回 END/ERROR 时永久阻塞）
+    const READ_TIMEOUT: Duration = Duration::from_secs(10);
+
     async fn fill(&mut self) -> AppResult<()> {
         let mut tmp = [0u8; 8192];
-        let n = self
-            .stream
-            .read(&mut tmp)
+        let n = tokio::time::timeout(Self::READ_TIMEOUT, self.stream.read(&mut tmp))
             .await
+            .map_err(|_| AppError::new(format!("读取响应超时（{}s）", Self::READ_TIMEOUT.as_secs())))?
             .map_err(|e| AppError::new(format!("读取响应失败: {}", e)))?;
         if n == 0 {
             return Err(AppError::new("连接已关闭"));
@@ -211,7 +218,7 @@ impl MemcachedClient {
         let mut out = Vec::new();
         loop {
             let line = inner.read_line().await?;
-            if line == "END" {
+            if is_response_end(&line) {
                 break;
             }
             if let Some(rest) = line.strip_prefix("STAT ") {
@@ -233,7 +240,7 @@ impl MemcachedClient {
         let mut slabs: Vec<u32> = Vec::new();
         loop {
             let line = inner.read_line().await?;
-            if line == "END" {
+            if is_response_end(&line) {
                 break;
             }
             // STAT items:<slab>:number <n>
@@ -249,7 +256,7 @@ impl MemcachedClient {
             inner.write_cmd(&format!("stats cachedump {} 0", slab)).await?;
             loop {
                 let line = inner.read_line().await?;
-                if line == "END" {
+                if is_response_end(&line) {
                     break;
                 }
                 if let Some(rest) = line.strip_prefix("ITEM ") {
@@ -282,7 +289,7 @@ impl MemcachedClient {
         inner.write_cmd("lru_crawler metadump all").await?;
         loop {
             let line = inner.read_line().await?;
-            if line == "END" {
+            if is_response_end(&line) {
                 break;
             }
             if let Some(rest) = line.strip_prefix("key=") {
