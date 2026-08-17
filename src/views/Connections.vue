@@ -70,6 +70,25 @@
           </n-button>
         </n-space>
       </div>
+
+      <!-- 导入 / 导出 -->
+      <input
+        ref="importInput"
+        type="file"
+        accept=".json,application/json"
+        style="display: none"
+        @change="onImportFile"
+      />
+      <div class="conn-import-export">
+        <n-button size="small" secondary block :title="t('connections.exportTitle')" @click="doExport">
+          <template #icon><n-icon><CloudDownloadOutline /></n-icon></template>
+          {{ t("common.export") }}
+        </n-button>
+        <n-button size="small" secondary block :title="t('connections.importTitle')" @click="triggerImport">
+          <template #icon><n-icon><CloudUploadOutline /></n-icon></template>
+          {{ t("common.import") }}
+        </n-button>
+      </div>
     </div>
 
     <!-- 可拖动分隔条：连接信息与详情间动态调宽 -->
@@ -206,8 +225,9 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { NIcon, useMessage } from "naive-ui";
-import { AddOutline, Cube, Grid, SearchOutline } from "@vicons/ionicons5";
+import { AddOutline, CloudDownloadOutline, CloudUploadOutline, Cube, Grid, SearchOutline } from "@vicons/ionicons5";
 import ConnectionForm from "@/components/ConnectionForm.vue";
+import * as api from "@/api";
 import type { ConnConfig } from "@/types";
 import appLogo from "@/assets/logo.png";
 import { useConnectionStore } from "@/store";
@@ -372,6 +392,52 @@ function select(id: string) {
 function openCreate() {
   editing.value = null;
   formVisible.value = true;
+}
+
+// ===== 导入 / 导出（连接列表最下方）=====
+const importInput = ref<HTMLInputElement | null>(null);
+
+/** 导出连接列表到 JSON 文件 */
+async function doExport() {
+  try {
+    const path = await api.exportConnections();
+    message.success(t("connections.exported", { n: store.saved.length, path }));
+  } catch (e) {
+    message.error(String(e));
+  }
+}
+
+function triggerImport() {
+  importInput.value?.click();
+}
+
+/** 选择导入文件后读取并合并 */
+async function onImportFile(ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const res = await api.importConnections(text);
+    if (res.imported > 0) {
+      message.success(
+        t("connections.imported", { n: res.imported }) +
+          (res.duplicated > 0
+            ? t("connections.importedDuplicated", { n: res.duplicated })
+            : ""),
+      );
+      // 重新加载连接列表（store.refresh 只刷新状态，需 loadSaved 重新拉取配置）
+      await store.loadSaved();
+      await store.refresh();
+    } else if (res.duplicated > 0) {
+      message.warning(t("connections.allDuplicated", { n: res.duplicated }));
+    } else {
+      message.warning(t("connections.noImportable"));
+    }
+  } catch (e) {
+    message.error(String(e));
+  }
 }
 
 function openEdit(cfg: ConnConfig) {
@@ -558,6 +624,15 @@ function onSaved() {
   justify-content: space-between;
   align-items: center;
   border-top: 1px solid rgba(128, 128, 128, 0.15);
+  padding-top: 10px;
+}
+
+/* 连接列表最下方的导入 / 导出 */
+.conn-import-export {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid rgba(128, 128, 128, 0.12);
   padding-top: 10px;
 }
 

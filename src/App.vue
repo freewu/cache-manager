@@ -38,11 +38,10 @@
               @update:value="onMenuSelect"
             />
 
-            <!-- 导入 / 导出 -->
-            <SidebarFooter :collapsed="siderCollapsed" />
           </n-layout-sider>
 
           <n-layout>
+            <TrayBridge />
             <n-layout-content content-style="height: 100vh; overflow: hidden">
               <router-view />
             </n-layout-content>
@@ -65,7 +64,7 @@ import {
   SettingsOutline,
 } from "@vicons/ionicons5";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import SidebarFooter from "@/components/SidebarFooter.vue";
+import TrayBridge from "@/components/TrayBridge.vue";
 import { useConnectionStore } from "@/store";
 import { themeState } from "@/theme";
 import { localeState, setLocale, t, type Locale } from "@/i18n";
