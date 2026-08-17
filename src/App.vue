@@ -18,7 +18,15 @@
             @expand="siderCollapsed = false"
           >
             <div class="brand">
-              <n-icon size="22"><database-icon /></n-icon>
+              <div class="brand-logo">
+                <img :src="logoUrl" alt="logo" class="brand-img" />
+                <span
+                  v-if="updateState.available"
+                  class="update-dot"
+                  :title="t('app.updateAvailable', { version: updateState.latest ?? '' })"
+                  @click="openUpdatePage"
+                ></span>
+              </div>
               <span v-if="!siderCollapsed" class="brand-title">Cache Manager</span>
             </div>
             <n-menu
@@ -52,8 +60,8 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useConnectionStore } from "@/store";
 import { themeState } from "@/theme";
 import { localeState, t } from "@/i18n";
-
-const DatabaseIcon = AlbumsOutline;
+import { updateState, checkForUpdate, openUpdatePage } from "@/version";
+import logoUrl from "./assets/logo.png";
 const osTheme = useOsTheme();
 const siderCollapsed = ref(false);
 const route = useRoute();
@@ -68,9 +76,10 @@ const isDark = computed(() =>
 
 const themeOverrides: GlobalThemeOverrides = {
   common: {
-    primaryColor: "#e8590c",
-    primaryColorHover: "#f76707",
-    primaryColorPressed: "#d9480f",
+    primaryColor: "#7dc5eb",
+    primaryColorHover: "#93d2f0",
+    primaryColorPressed: "#5fb3e2",
+    primaryColorSuppl: "#7dc5eb",
     borderRadius: "6px",
   },
 };
@@ -129,6 +138,8 @@ function onMenuSelect(key: string) {
 
 onMounted(async () => {
   await store.init();
+  // 异步检查新版本（失败静默，不阻塞界面）
+  checkForUpdate();
   // 禁用页面右键菜单（WebView2 默认菜单）
   onContextMenu = (e: MouseEvent) => e.preventDefault();
   window.addEventListener("contextmenu", onContextMenu, { capture: true });
@@ -180,6 +191,47 @@ body,
   padding: 16px;
   font-weight: 700;
   font-size: 15px;
+}
+.brand-logo {
+  position: relative;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.brand-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: contain;
+  display: block;
+}
+/* 新版本提醒：logo 右角呼吸灯效果 */
+.update-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.6);
+  animation: update-breathe 1.6s ease-in-out infinite;
+}
+.update-dot:hover {
+  transform: scale(1.15);
+}
+@keyframes update-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 77, 79, 0);
+  }
 }
 .brand-title {
   white-space: nowrap;

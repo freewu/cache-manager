@@ -31,9 +31,9 @@
     </div>
 
     <!-- 主体 -->
-    <div class="main">
+    <div class="main" ref="mainRef">
       <!-- 键列表 -->
-      <div class="key-panel">
+      <div class="key-panel" :style="{ width: panelWidth + 'px' }">
         <div class="key-toolbar">
           <n-input v-model:value="pattern" size="small" :placeholder="t('explorer.patternPlaceholder')" clearable @keyup.enter="onSearch">
             <template #prefix>
@@ -101,6 +101,16 @@
           {{ t("explorer.totalCount", { n: totalShown }) }}
           <span v-if="scan.truncated">{{ t("explorer.truncated") }}</span>
         </div>
+      </div>
+
+      <!-- 可拖动分隔条 -->
+      <div
+        class="splitter"
+        title="拖动调整宽度"
+        @mousedown="startDrag"
+        @dblclick="resetPanelWidth"
+      >
+        <div class="splitter-handle"></div>
       </div>
 
       <!-- 值面板 -->
@@ -203,6 +213,45 @@ const cursor = ref("0");
 const loadingKeys = ref(false);
 const scan = ref<ScanPage>({ cursor: "0", keys: [], truncated: false, types: {} });
 const currentKey = ref("");
+
+// ===== 左右分隔：支持拖动调整宽度 =====
+const PANEL_MIN = 200;
+const PANEL_MAX_RATIO = 0.6;
+const PANEL_KEY = "cache-manager:explorer-panel-width";
+const mainRef = ref<HTMLElement | null>(null);
+const panelWidth = ref<number>(
+  Math.max(PANEL_MIN, Number(localStorage.getItem(PANEL_KEY)) || 340),
+);
+let dragging = false;
+
+function startDrag(e: MouseEvent) {
+  if (e.button !== 0) return;
+  dragging = true;
+  const onMove = (ev: MouseEvent) => {
+    if (!dragging || !mainRef.value) return;
+    const rect = mainRef.value.getBoundingClientRect();
+    const max = Math.round(rect.width * PANEL_MAX_RATIO);
+    const w = Math.round(ev.clientX - rect.left);
+    panelWidth.value = Math.min(max, Math.max(PANEL_MIN, w));
+  };
+  const onUp = () => {
+    dragging = false;
+    localStorage.setItem(PANEL_KEY, String(panelWidth.value));
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  };
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+}
+
+function resetPanelWidth() {
+  panelWidth.value = 340;
+  localStorage.setItem(PANEL_KEY, String(340));
+}
 const currentView = ref<ValueView | null>(null);
 const loadingView = ref(false);
 
@@ -548,13 +597,37 @@ async function disconnect() {
   display: flex;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 .key-panel {
   width: 340px;
-  min-width: 240px;
+  min-width: 200px;
   border-right: 1px solid rgba(128, 128, 128, 0.15);
   display: flex;
   flex-direction: column;
+}
+.splitter {
+  flex: none;
+  width: 6px;
+  cursor: col-resize;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: transparent;
+  user-select: none;
+}
+.splitter:hover {
+  background: rgba(125, 197, 235, 0.12);
+}
+.splitter-handle {
+  width: 2px;
+  margin: 12px 0;
+  border-radius: 1px;
+  background: rgba(128, 128, 128, 0.25);
+  transition: background 0.15s;
+}
+.splitter:hover .splitter-handle {
+  background: rgba(125, 197, 235, 0.7);
 }
 .key-toolbar {
   display: flex;
@@ -583,9 +656,9 @@ async function disconnect() {
   background: rgba(128, 128, 128, 0.12);
 }
 .type-tab.active {
-  color: #e8590c;
-  background: rgba(232, 89, 12, 0.12);
-  border-color: rgba(232, 89, 12, 0.45);
+  color: #7dc5eb;
+  background: rgba(125, 197, 235, 0.12);
+  border-color: rgba(125, 197, 235, 0.45);
 }
 .key-list {
   flex: 1;
@@ -609,8 +682,8 @@ async function disconnect() {
   background: rgba(128, 128, 128, 0.1);
 }
 .key-item.active {
-  background: rgba(232, 89, 12, 0.15);
-  color: #e8590c;
+  background: rgba(125, 197, 235, 0.15);
+  color: #7dc5eb;
 }
 .key-name {
   flex: 1;
@@ -659,8 +732,8 @@ async function disconnect() {
   color: #18a058;
 }
 .kt-hash {
-  background: rgba(232, 89, 12, 0.16);
-  color: #e8590c;
+  background: rgba(125, 197, 235, 0.16);
+  color: #7dc5eb;
 }
 .kt-list {
   background: rgba(32, 128, 240, 0.16);

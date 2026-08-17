@@ -217,7 +217,7 @@ function scrollToBottom() {
   white-space: pre-wrap;
 }
 .text-resp {
-  color: #e8590c;
+  color: #7dc5eb;
 }
 .input-bar {
   padding: 10px 16px;

@@ -283,7 +283,7 @@ function clearAll() {
   border-bottom: 1px dashed rgba(128, 128, 128, 0.1);
 }
 .msg-channel {
-  color: #e8590c;
+  color: #7dc5eb;
   font-weight: 600;
 }
 .msg-text {
@@ -309,7 +309,7 @@ function clearAll() {
   min-width: 160px;
 }
 .monitor-cmd {
-  color: #e8590c;
+  color: #7dc5eb;
   font-weight: 600;
 }
 .monitor-args {

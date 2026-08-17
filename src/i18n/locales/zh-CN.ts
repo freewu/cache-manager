@@ -53,6 +53,7 @@ export default {
   "app.menu.connections": "连接管理",
   "app.menu.connected": "已连接",
   "app.menu.settings": "设置",
+  "app.updateAvailable": "发现新版本 {version}，点击查看",
 
   // ============ 连接管理页 ============
   "connections.title": "连接",

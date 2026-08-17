@@ -518,8 +518,8 @@ function onSaved() {
   background: rgba(128, 128, 128, 0.08);
 }
 .conn-item.active {
-  background: rgba(232, 89, 12, 0.1);
-  border-color: #e8590c55;
+  background: rgba(125, 197, 235, 0.1);
+  border-color: #7dc5eb55;
 }
 .conn-item.connected {
   border-color: #18a05855;
