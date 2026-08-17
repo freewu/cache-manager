@@ -5,37 +5,37 @@
       <div class="left-header">
         <div class="left-title-wrap">
           <img class="app-logo" :src="appLogo" alt="Cache Manager" />
-          <span class="left-title">连接</span>
+          <span class="left-title">{{ t("connections.title") }}</span>
         </div>
         <div class="left-actions">
-          <n-button size="small" secondary @click="doExport" title="导出连接列表到 JSON">
+          <n-button size="small" secondary @click="doExport" :title="t('connections.exportTitle')">
             <template #icon><n-icon><CloudDownloadOutline /></n-icon></template>
-            导出
+            {{ t("common.export") }}
           </n-button>
-          <n-button size="small" secondary @click="triggerImport" title="从 JSON 导入连接列表">
+          <n-button size="small" secondary @click="triggerImport" :title="t('connections.importTitle')">
             <template #icon><n-icon><CloudUploadOutline /></n-icon></template>
-            导入
+            {{ t("common.import") }}
           </n-button>
           <input ref="importInput" type="file" accept=".json,application/json" style="display: none" @change="onImportFile" />
           <n-button size="small" type="primary" @click="openCreate">
             <template #icon><n-icon><AddOutline /></n-icon></template>
-            新建
+            {{ t("common.create") }}
           </n-button>
         </div>
       </div>
 
-      <n-input v-model:value="keyword" placeholder="搜索名称 / 地址 / 端口" clearable size="small">
+      <n-input v-model:value="keyword" :placeholder="t('connections.searchPlaceholder')" clearable size="small">
         <template #prefix><n-icon><SearchOutline /></n-icon></template>
       </n-input>
 
       <div class="mode-filter">
         <n-radio-group v-model:value="modeFilter" size="tiny">
-          <n-radio-button value="all">全部</n-radio-button>
-          <n-radio-button value="single">单机</n-radio-button>
-          <n-radio-button value="masterSlave">主从</n-radio-button>
-          <n-radio-button value="sentinel">哨兵</n-radio-button>
-          <n-radio-button value="cluster">集群</n-radio-button>
-          <n-radio-button value="memcached">Memcached</n-radio-button>
+          <n-radio-button value="all">{{ t("common.all") }}</n-radio-button>
+          <n-radio-button value="single">{{ t("mode.single") }}</n-radio-button>
+          <n-radio-button value="masterSlave">{{ t("mode.masterSlave") }}</n-radio-button>
+          <n-radio-button value="sentinel">{{ t("mode.sentinel") }}</n-radio-button>
+          <n-radio-button value="cluster">{{ t("mode.cluster") }}</n-radio-button>
+          <n-radio-button value="memcached">{{ t("mode.memcached") }}</n-radio-button>
         </n-radio-group>
       </div>
 
@@ -47,7 +47,7 @@
           :class="{ active: cfg.id === selectedId, connected: isConnected(cfg.id) }"
           @click="select(cfg.id)"
           @dblclick="connect(cfg)"
-          title="双击连接"
+          :title="t('connections.dblclickHint')"
         >
           <span class="dot" :class="statusDot(cfg.id)"></span>
           <div class="conn-item-body">
@@ -58,14 +58,14 @@
         </div>
         <n-empty
           v-if="filtered.length === 0 && !loading"
-          description="没有连接配置"
+          :description="t('connections.empty')"
           size="small"
           style="margin-top: 60px"
         />
       </div>
 
       <div class="left-footer">
-        <span class="muted">已保存 {{ filtered.length }}</span>
+        <span class="muted">{{ t("connections.savedCount", { n: filtered.length }) }}</span>
         <n-space v-if="connectedCount > 0" align="center" :size="4">
           <span class="dot dot-ok"></span>
           <n-button
@@ -75,7 +75,7 @@
             :loading="disconnectingAll"
             @click="disconnectAll"
           >
-            全部断开
+            {{ t("connections.disconnectAll") }}
           </n-button>
         </n-space>
       </div>
@@ -85,11 +85,11 @@
     <div class="right-pane">
       <n-empty
         v-if="!selected && !loading"
-        description="选择左侧连接查看详情，或新建一个连接"
+        :description="t('connections.emptyDetail')"
         style="margin-top: 120px"
       >
         <template #extra>
-          <n-button type="primary" @click="openCreate">新建连接</n-button>
+          <n-button type="primary" @click="openCreate">{{ t("connections.newConnection") }}</n-button>
         </template>
       </n-empty>
 
@@ -103,58 +103,58 @@
             <n-tag :type="statusTag(selected.id)" size="small">{{ statusText(selected.id) }}</n-tag>
           </div>
           <div class="detail-actions">
-            <n-button size="small" :loading="testing" @click="test(selected)">测试</n-button>
+            <n-button size="small" :loading="testing" @click="test(selected)">{{ t("connections.test") }}</n-button>
             <n-button size="small" type="primary" :loading="connectingId === selected.id" @click="connect(selected)">
-              {{ isConnected(selected.id) ? "打开" : "连接" }}
+              {{ isConnected(selected.id) ? t("connections.open") : t("connections.connect") }}
             </n-button>
-            <n-button size="small" @click="openEdit(selected)">编辑</n-button>
+            <n-button size="small" @click="openEdit(selected)">{{ t("common.edit") }}</n-button>
             <n-popconfirm @positive-click="remove(selected.id)">
               <template #trigger>
-                <n-button size="small" type="error" quaternary>删除</n-button>
+                <n-button size="small" type="error" quaternary>{{ t("common.delete") }}</n-button>
               </template>
-              删除该连接配置？
+              {{ t("connections.deleteConfirm") }}
             </n-popconfirm>
           </div>
         </div>
 
         <n-descriptions bordered :column="2" size="small" label-placement="left" class="detail-desc">
-          <n-descriptions-item label="模式">
+          <n-descriptions-item :label="t('connections.field.mode')">
             {{ modeText(selected.mode) }}<span class="muted">（{{ selected.mode }}）</span>
           </n-descriptions-item>
-          <n-descriptions-item label="主地址">
-            <span v-if="selected.mode === 'sentinel'">Sentinel 组：{{ selected.serviceName || "-" }}</span>
+          <n-descriptions-item :label="t('connections.field.masterAddr')">
+            <span v-if="selected.mode === 'sentinel'">{{ t("connections.sentinelGroup", { name: selected.serviceName || "-" }) }}</span>
             <span v-else>{{ selected.host }}:{{ selected.port }}</span>
           </n-descriptions-item>
-          <n-descriptions-item label="用户名">
-            {{ selected.username || "（无）" }}
+          <n-descriptions-item :label="t('connections.field.username')">
+            {{ selected.username || t("common.none") }}
           </n-descriptions-item>
-          <n-descriptions-item label="密码">
+          <n-descriptions-item :label="t('connections.field.password')">
             <span v-if="selected.password">
               <span class="password-mask" @click="showPwd = !showPwd">
                 {{ showPwd ? selected.password : "••••••••" }}
               </span>
             </span>
-            <span v-else>（无）</span>
+            <span v-else>{{ t("common.none") }}</span>
           </n-descriptions-item>
-          <n-descriptions-item label="数据库">
+          <n-descriptions-item :label="t('connections.field.database')">
             {{ selected.database ?? (selected.mode === "cluster" || selected.mode === "memcached" ? "-" : "0") }}
           </n-descriptions-item>
-          <n-descriptions-item label="TLS">
-            {{ selected.tls ? "启用" : "关闭" }}
+          <n-descriptions-item :label="t('connections.field.tls')">
+            {{ selected.tls ? t("common.enabled") : t("common.disabled") }}
           </n-descriptions-item>
-          <n-descriptions-item label="连接超时">
-            {{ (selected.connectTimeoutMs / 1000).toFixed(1) }} 秒
+          <n-descriptions-item :label="t('connections.field.timeout')">
+            {{ (selected.connectTimeoutMs / 1000).toFixed(1) }} {{ t("common.seconds") }}
           </n-descriptions-item>
         </n-descriptions>
 
         <div class="detail-section">
-          <div class="detail-section-title">节点列表</div>
+          <div class="detail-section-title">{{ t("connections.nodeList") }}</div>
           <n-table size="small" :bordered="false">
             <thead>
               <tr>
-                <th>地址</th>
-                <th>角色</th>
-                <th>状态</th>
+                <th>{{ t("common.address") }}</th>
+                <th>{{ t("common.role") }}</th>
+                <th>{{ t("common.status") }}</th>
               </tr>
             </thead>
             <tbody>
@@ -173,13 +173,13 @@
         </div>
 
         <div class="detail-section" v-if="liveNodes.length">
-          <div class="detail-section-title">实时节点状态</div>
+          <div class="detail-section-title">{{ t("connections.liveNodes") }}</div>
           <n-table size="small" :bordered="false">
             <thead>
               <tr>
-                <th>地址</th>
-                <th>角色</th>
-                <th>状态</th>
+                <th>{{ t("common.address") }}</th>
+                <th>{{ t("common.role") }}</th>
+                <th>{{ t("common.status") }}</th>
               </tr>
             </thead>
             <tbody>
@@ -198,7 +198,7 @@
         </div>
 
         <div class="detail-section" v-if="errorTextOf(selected.id)">
-          <div class="detail-section-title">最近错误</div>
+          <div class="detail-section-title">{{ t("connections.recentErrors") }}</div>
           <n-alert type="error" size="small">{{ errorTextOf(selected.id) }}</n-alert>
         </div>
       </template>
@@ -218,6 +218,7 @@ import * as api from "@/api";
 import type { ConnConfig } from "@/types";
 import appLogo from "@/assets/logo.png";
 import { useConnectionStore } from "@/store";
+import { t } from "@/i18n";
 
 const store = useConnectionStore();
 const router = useRouter();
@@ -313,7 +314,7 @@ const displayUrl = (cfg: ConnConfig) =>
 const isConnected = (id: string) => store.byId(id)?.status === "connected";
 const statusText = (id: string) => {
   const s = store.byId(id)?.status;
-  return s === "connected" ? "已连接" : s === "connecting" ? "连接中" : s === "error" ? "错误" : "未连接";
+  return t("status." + s);
 };
 const statusTag = (id: string) => {
   const s = store.byId(id)?.status;
@@ -323,13 +324,19 @@ const statusDot = (id: string) => {
   const s = store.byId(id)?.status;
   return s === "connected" ? "dot-ok" : s === "connecting" ? "dot-busy" : s === "error" ? "dot-err" : "dot-off";
 };
-const statusTextOf = (s: string) =>
-  s === "connected" ? "已连接" : s === "connecting" ? "连接中" : s === "error" ? "错误" : "未连接";
+const statusTextOf = (s: string) => t("status." + s);
 const roleText = (r: string) =>
-  r === "master" ? "主节点" : r === "replica" || r === "slave" ? "从节点" : r === "sentinel" ? "哨兵" : r === "seed" ? "种子节点" : r || "-";
+  r === "master"
+    ? t("role.master")
+    : r === "replica" || r === "slave"
+      ? t("role.replica")
+      : r === "sentinel"
+        ? t("role.sentinel")
+        : r === "seed"
+          ? t("role.seed")
+          : r || "-";
 const errorTextOf = (id: string) => store.byId(id)?.error || "";
-const modeText = (m: string) =>
-  m === "single" ? "单机" : m === "masterSlave" ? "主从" : m === "sentinel" ? "哨兵" : m === "memcached" ? "Memcached" : "集群";
+const modeText = (m: string) => t("mode." + m);
 
 const connIcon = (cfg: ConnConfig) => (cfg.mode === "memcached" ? Grid : Cube);
 const iconColor = (cfg: ConnConfig) => (cfg.mode === "memcached" ? "#00ADD8" : "#D82C20");
@@ -351,7 +358,7 @@ const importInput = ref<HTMLInputElement | null>(null);
 async function doExport() {
   try {
     const path = await api.exportConnections();
-    message.success(`已导出 ${store.saved.length} 个连接到\n${path}`);
+    message.success(t("connections.exported", { n: store.saved.length, path }));
   } catch (e) {
     message.error(String(e));
   }
@@ -371,14 +378,17 @@ async function onImportFile(ev: Event) {
     const text = await file.text();
     const res = await api.importConnections(text);
     if (res.imported > 0) {
-      message.success(`导入 ${res.imported} 个连接` + (res.duplicated > 0 ? `，跳过 ${res.duplicated} 个重复（host:port 一致）` : ""));
+      message.success(
+        t("connections.imported", { n: res.imported }) +
+          (res.duplicated > 0 ? t("connections.importedDuplicated", { n: res.duplicated }) : ""),
+      );
       // 重新加载连接列表（store.refresh 只刷新状态，需 loadSaved 重新拉取配置）
       await store.loadSaved();
       await store.refresh();
     } else if (res.duplicated > 0) {
-      message.warning(`全部 ${res.duplicated} 个连接已存在（host:port 一致），未导入`);
+      message.warning(t("connections.allDuplicated", { n: res.duplicated }));
     } else {
-      message.warning("文件中没有可导入的连接");
+      message.warning(t("connections.noImportable"));
     }
   } catch (e) {
     message.error(String(e));
@@ -394,7 +404,7 @@ async function test(cfg: ConnConfig) {
   testing.value = true;
   try {
     await store.test(cfg);
-    message.success("连接测试通过");
+    message.success(t("connections.testOk"));
   } catch (e) {
     message.error(String(e));
   } finally {
@@ -423,7 +433,7 @@ async function disconnectAll() {
   disconnectingAll.value = true;
   try {
     await store.disconnectAll();
-    message.success("已断开全部连接");
+    message.success(t("connections.disconnectedAll"));
   } catch (e) {
     message.error(String(e));
   } finally {
@@ -433,7 +443,7 @@ async function disconnectAll() {
 
 async function remove(id: string) {
   await store.removeSaved(id);
-  message.success("已删除");
+  message.success(t("connections.deleted"));
 }
 
 function onSaved() {

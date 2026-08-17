@@ -3,14 +3,14 @@
     <div class="toolbar">
       <n-icon :component="connIcon" :size="15" :color="iconColor" :title="modeText" style="vertical-align: -2px" />
       <span class="conn-name">{{ connName }}</span>
-      <n-button size="small" @click="go('/explorer/' + connId)">查看数据</n-button>
-      <n-button size="small" @click="go('/console/' + connId)">命令行</n-button>
-      <n-button size="small" type="primary" :loading="loading" @click="refreshAll">刷新</n-button>
+      <n-button size="small" @click="go('/explorer/' + connId)">{{ t("server.viewData") }}</n-button>
+      <n-button size="small" @click="go('/console/' + connId)">{{ t("server.console") }}</n-button>
+      <n-button size="small" type="primary" :loading="loading" @click="refreshAll">{{ t("server.refresh") }}</n-button>
     </div>
 
     <n-tabs type="line" animated style="flex: 1; min-height: 0" @update:value="onTabChange">
       <!-- INFO / Memcached stats -->
-      <n-tab-pane :name="isMemcached ? 'stats' : 'info'" :tab="isMemcached ? '统计 (stats)' : '概览 (INFO)'">
+      <n-tab-pane :name="isMemcached ? 'stats' : 'info'" :tab="isMemcached ? t('server.tabStats') : t('server.tabInfo')">
         <div class="tab-body">
           <n-tabs v-if="info" type="segment" size="small">
             <n-tab-pane
@@ -27,17 +27,17 @@
               />
             </n-tab-pane>
           </n-tabs>
-          <n-empty v-else description="暂无数据" style="margin-top: 60px" />
+          <n-empty v-else :description="t('server.noData')" style="margin-top: 60px" />
         </div>
       </n-tab-pane>
 
       <!-- CONFIG（仅 Redis） -->
-      <n-tab-pane v-if="!isMemcached" name="config" tab="配置 (CONFIG)">
+      <n-tab-pane v-if="!isMemcached" name="config" :tab="t('server.tabConfig')">
         <div class="tab-body">
           <div class="inline-bar">
-            <n-input v-model:value="configPattern" size="small" placeholder="* 全部" style="width: 260px" clearable @keyup.enter="loadConfig" />
-            <n-button size="small" @click="loadConfig">查询</n-button>
-            <n-button size="small" :disabled="!selectedConfig" @click="configDialogVisible = true">修改配置</n-button>
+            <n-input v-model:value="configPattern" size="small" :placeholder="t('server.queryAllPlaceholder')" style="width: 260px" clearable @keyup.enter="loadConfig" />
+            <n-button size="small" @click="loadConfig">{{ t("server.query") }}</n-button>
+            <n-button size="small" :disabled="!selectedConfig" @click="configDialogVisible = true">{{ t("server.modifyConfig") }}</n-button>
           </div>
           <n-data-table
             size="small"
@@ -51,21 +51,21 @@
       </n-tab-pane>
 
       <!-- CLIENTS -->
-      <n-tab-pane v-if="!isMemcached" name="clients" tab="客户端">
+      <n-tab-pane v-if="!isMemcached" name="clients" :tab="t('server.tabClients')">
         <div class="tab-body">
           <n-data-table size="small" :columns="clientColumns" :data="clients" :max-height="560" />
         </div>
       </n-tab-pane>
 
       <!-- SLOWLOG -->
-      <n-tab-pane v-if="!isMemcached" name="slowlog" tab="慢日志">
+      <n-tab-pane v-if="!isMemcached" name="slowlog" :tab="t('server.tabSlowlog')">
         <div class="tab-body">
           <n-data-table size="small" :columns="slowlogColumns" :data="slowlog" :max-height="560" />
         </div>
       </n-tab-pane>
 
       <!-- TOPOLOGY -->
-      <n-tab-pane v-if="!isMemcached" name="topology" tab="拓扑">
+      <n-tab-pane v-if="!isMemcached" name="topology" :tab="t('server.tabTopology')">
         <div class="tab-body">
           <div class="topo-list">
             <n-card
@@ -83,23 +83,23 @@
               <div v-if="n.extra" class="topo-extra muted">{{ n.extra }}</div>
             </n-card>
           </div>
-          <n-empty v-if="topology.length === 0" description="暂无拓扑信息" style="margin-top: 40px" />
+          <n-empty v-if="topology.length === 0" :description="t('server.noTopology')" style="margin-top: 40px" />
         </div>
       </n-tab-pane>
     </n-tabs>
 
     <!-- 修改配置弹窗 -->
-    <n-modal v-model:show="configDialogVisible" preset="card" title="修改配置" style="width: 420px">
+    <n-modal v-model:show="configDialogVisible" preset="card" :title="t('server.modifyConfig')" style="width: 420px">
       <n-form label-placement="top" size="small">
-        <n-form-item label="配置项">
+        <n-form-item :label="t('server.configKey')">
           <n-input v-model:value="configKey" disabled />
         </n-form-item>
-        <n-form-item label="新值">
+        <n-form-item :label="t('server.configValue')">
           <n-input v-model:value="configValue" />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button type="primary" :loading="savingConfig" @click="saveConfig">确定</n-button>
+        <n-button type="primary" :loading="savingConfig" @click="saveConfig">{{ t("common.confirm") }}</n-button>
       </template>
     </n-modal>
   </div>
@@ -114,6 +114,7 @@ import type { DataTableColumns } from "naive-ui";
 import type { NodeStatus, ServerInfo } from "@/types";
 import * as api from "@/api";
 import { useConnectionStore } from "@/store";
+import { t } from "@/i18n";
 
 const route = useRoute();
 const router = useRouter();
@@ -121,13 +122,13 @@ const message = useMessage();
 const store = useConnectionStore();
 
 const connId = computed(() => route.params.id as string);
-const connName = computed(() => store.byId(connId.value)?.name || "未知连接");
+const connName = computed(() => store.byId(connId.value)?.name || t("console.unknownConn"));
 const isMemcached = computed(() => store.byId(connId.value)?.mode === "memcached");
 const connIcon = computed(() => (isMemcached.value ? Grid : Cube));
 const iconColor = computed(() => (isMemcached.value ? "#00ADD8" : "#D82C20"));
 const modeText = computed(() => {
   const m = store.byId(connId.value)?.mode;
-  return m === "single" ? "单机" : m === "masterSlave" ? "主从" : m === "sentinel" ? "哨兵" : m === "memcached" ? "Memcached" : "集群";
+  return t("mode." + m);
 });
 
 const loading = ref(false);
@@ -147,39 +148,39 @@ const savingConfig = ref(false);
 const go = (p: string) => router.push(p);
 
 const infoColumns: DataTableColumns = [
-  { title: "参数", key: "key", width: 260, ellipsis: true },
-  { title: "值", key: "value", ellipsis: true },
+  { title: t("server.col.param"), key: "key", width: 260, ellipsis: true },
+  { title: t("server.col.value"), key: "value", ellipsis: true },
 ];
 
 const configColumns: DataTableColumns = [
   { type: "selection", width: 40 },
-  { title: "配置项", key: "key", width: 260, ellipsis: true },
-  { title: "值", key: "value", ellipsis: true },
+  { title: t("server.col.configItem"), key: "key", width: 260, ellipsis: true },
+  { title: t("server.col.value"), key: "value", ellipsis: true },
 ];
 
 const clientColumns: DataTableColumns = [
-  { title: "ID", key: "id", width: 80 },
-  { title: "地址", key: "addr", width: 170 },
-  { title: "名称", key: "name", width: 110 },
+  { title: t("server.col.id"), key: "id", width: 80 },
+  { title: t("server.col.addr"), key: "addr", width: 170 },
+  { title: t("server.col.name"), key: "name", width: 110 },
   { title: "DB", key: "db", width: 60 },
-  { title: "命令", key: "cmd", width: 100 },
-  { title: "状态", key: "flags", ellipsis: true },
-  { title: "空闲(s)", key: "idle", width: 80 },
-  { title: "年龄(s)", key: "age", width: 80 },
-  { title: "用户", key: "user", width: 90 },
+  { title: t("server.col.cmd"), key: "cmd", width: 100 },
+  { title: t("server.col.status"), key: "flags", ellipsis: true },
+  { title: t("server.col.idle"), key: "idle", width: 80 },
+  { title: t("server.col.age"), key: "age", width: 80 },
+  { title: t("server.col.user"), key: "user", width: 90 },
   { title: "RESP", key: "resp", width: 60 },
 ];
 
 const slowlogColumns: DataTableColumns = [
-  { title: "ID", key: "id", width: 70 },
-  { title: "耗时(µs)", key: "durationUs", width: 100 },
+  { title: t("server.col.id"), key: "id", width: 70 },
+  { title: t("server.col.duration"), key: "durationUs", width: 100 },
   {
-    title: "命令",
+    title: t("server.col.cmd"),
     key: "args",
     render: (r: any) => r.args.join(" "),
     ellipsis: true,
   },
-  { title: "客户端", key: "clientAddr", width: 170 },
+  { title: t("server.col.client"), key: "clientAddr", width: 170 },
 ];
 
 onMounted(async () => {
@@ -256,7 +257,7 @@ async function saveConfig() {
   savingConfig.value = true;
   try {
     await api.setServerConfig(connId.value, configKey.value, configValue.value);
-    message.success("已修改（部分配置可能需要 CONFIG REWRITE 或重启生效）");
+    message.success(t("server.modified"));
     configDialogVisible.value = false;
     await loadConfig();
   } catch (e) {
@@ -267,7 +268,13 @@ async function saveConfig() {
 }
 
 const roleText = (r: string) =>
-  r === "master" ? "主" : r === "replica" || r === "slave" ? "从" : r === "sentinel" ? "哨兵" : r;
+  r === "master"
+    ? t("role.short.master")
+    : r === "replica" || r === "slave"
+      ? t("role.short.replica")
+      : r === "sentinel"
+        ? t("role.short.sentinel")
+        : r;
 const roleTag = (r: string) =>
   r === "master" ? "error" : r === "replica" || r === "slave" ? "info" : r === "sentinel" ? "warning" : "default";
 </script>

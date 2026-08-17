@@ -10,8 +10,8 @@
         size="small"
         style="width: 140px"
       />
-      <n-button size="small" @click="go('/explorer/' + connId)">查看数据</n-button>
-      <n-button size="small" @click="clearOutput">清空</n-button>
+      <n-button size="small" @click="go('/explorer/' + connId)">{{ t("console.viewData") }}</n-button>
+      <n-button size="small" @click="clearOutput">{{ t("console.clear") }}</n-button>
     </div>
 
     <div class="output" ref="outputRef">
@@ -30,7 +30,7 @@
           <span v-else class="muted">(empty)</span>
         </div>
       </div>
-      <div v-if="executing" class="entry muted">执行中...</div>
+      <div v-if="executing" class="entry muted">{{ t("console.executing") }}</div>
     </div>
 
     <div class="input-bar">
@@ -39,11 +39,11 @@
         v-model:value="commandLine"
         type="textarea"
         :autosize="{ minRows: 1, maxRows: 6 }"
-        placeholder="输入 Redis 命令，例如：SET foo bar / GET foo / INFO server。Enter 执行，↑↓ 历史"
+        :placeholder="t('console.placeholder')"
         @keydown="onKeydown"
       />
       <n-button type="primary" :loading="executing" style="margin-top: 6px" @click="run">
-        执行
+        {{ t("console.execute") }}
       </n-button>
     </div>
   </div>
@@ -57,6 +57,7 @@ import { Cube, Grid } from "@vicons/ionicons5";
 import type { CommandResult } from "@/types";
 import * as api from "@/api";
 import { useConnectionStore } from "@/store";
+import { t } from "@/i18n";
 
 const route = useRoute();
 const router = useRouter();
@@ -64,13 +65,13 @@ const message = useMessage();
 const store = useConnectionStore();
 
 const connId = computed(() => route.params.id as string);
-const connName = computed(() => store.byId(connId.value)?.name || "未知连接");
+const connName = computed(() => store.byId(connId.value)?.name || t("console.unknownConn"));
 const connMode = computed(() => store.byId(connId.value)?.mode);
 const connIcon = computed(() => (connMode.value === "memcached" ? Grid : Cube));
 const iconColor = computed(() => (connMode.value === "memcached" ? "#00ADD8" : "#D82C20"));
 const typeTitle = computed(() => {
   const m = connMode.value;
-  return m === "single" ? "单机" : m === "masterSlave" ? "主从" : m === "sentinel" ? "哨兵" : m === "memcached" ? "Memcached" : "集群";
+  return t("mode." + m);
 });
 
 const commandLine = ref("");
@@ -84,8 +85,8 @@ const inputRef = ref();
 const replicas = ref<number[]>([]);
 const currentReplica = ref<number | null>(null);
 const replicaOptions = computed(() => [
-  { label: "主库", value: null as any },
-  ...replicas.value.map((i) => ({ label: `从库 ${i}`, value: i })),
+  { label: t("console.master"), value: null as any },
+  ...replicas.value.map((i) => ({ label: t("console.replica", { i }), value: i })),
 ]);
 
 const go = (p: string) => router.push(p);

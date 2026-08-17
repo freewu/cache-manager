@@ -23,10 +23,10 @@
           size="small"
           style="width: 140px"
         />
-        <n-button size="small" @click="go('/server/' + connId)">服务状态</n-button>
-        <n-button v-if="!isMemcached" size="small" @click="go('/monitor/' + connId)">监控</n-button>
-        <n-button size="small" @click="go('/console/' + connId)">命令行</n-button>
-        <n-button size="small" @click="disconnect">断开</n-button>
+        <n-button size="small" @click="go('/server/' + connId)">{{ t("explorer.serviceStatus") }}</n-button>
+        <n-button v-if="!isMemcached" size="small" @click="go('/monitor/' + connId)">{{ t("explorer.monitor") }}</n-button>
+        <n-button size="small" @click="go('/console/' + connId)">{{ t("explorer.console") }}</n-button>
+        <n-button size="small" @click="disconnect">{{ t("explorer.disconnect") }}</n-button>
       </n-space>
     </div>
 
@@ -35,13 +35,13 @@
       <!-- 键列表 -->
       <div class="key-panel">
         <div class="key-toolbar">
-          <n-input v-model:value="pattern" size="small" placeholder="模糊查询，* 匹配所有" clearable @keyup.enter="onSearch">
+          <n-input v-model:value="pattern" size="small" :placeholder="t('explorer.patternPlaceholder')" clearable @keyup.enter="onSearch">
             <template #prefix>
               <n-icon><search-icon /></n-icon>
             </template>
           </n-input>
-          <n-button size="small" type="primary" :loading="loadingKeys" @click="onSearch">搜索</n-button>
-          <n-button size="small" type="info" secondary @click="openCreate">新建</n-button>
+          <n-button size="small" type="primary" :loading="loadingKeys" @click="onSearch">{{ t("explorer.search") }}</n-button>
+          <n-button size="small" type="info" secondary @click="openCreate">{{ t("explorer.newKey") }}</n-button>
         </div>
 
         <div class="type-tabs" v-if="!isMemcached">
@@ -50,7 +50,7 @@
             :class="{ active: typeFilter === null }"
             @click="setTypeFilter('')"
           >
-            全部
+            {{ t("explorer.all") }}
           </div>
           <div
             v-for="t in typeTabOptions"
@@ -79,27 +79,27 @@
                 v-if="keyType(k)"
                 class="key-type"
                 :class="['kt-' + keyType(k), { active: typeFilter === keyType(k) }]"
-                :title="'查看全部 ' + typeLabel(keyType(k)) + ' 数据'"
+                :title="t('explorer.viewAllType', { type: typeLabel(keyType(k)) })"
                 @click.stop="toggleTypeFilter(keyType(k))"
                 >{{ typeLabel(keyType(k)) }}</span
               >
-              <n-popconfirm positive-text="删除" negative-text="取消" @positive-click="removeKey(k)" placement="left">
+              <n-popconfirm :positive-text="t('common.delete')" :negative-text="t('common.cancel')" @positive-click="removeKey(k)" placement="left">
                 <template #trigger>
-                  <span class="key-del" title="删除键" @click.stop>
+                  <span class="key-del" :title="t('explorer.deleteKeyTitle')" @click.stop>
                     <n-icon :size="14"><delete-icon /></n-icon>
                   </span>
                 </template>
-                确认删除键 <b>{{ k }}</b>？
+                <span v-html="t('explorer.confirmDeleteKey', { key: k })"></span>
               </n-popconfirm>
             </div>
-            <div class="key-empty muted" v-if="!displayKeys.length">没有匹配的键</div>
+            <div class="key-empty muted" v-if="!displayKeys.length">{{ t("explorer.noMatchingKeys") }}</div>
           </div>
-          <n-empty v-else description="输入 pattern 开始搜索" style="margin-top: 60px" />
+          <n-empty v-else :description="t('explorer.inputPattern')" style="margin-top: 60px" />
         </n-spin>
 
         <div class="key-footer muted">
-          共 {{ totalShown }} 个
-          <span v-if="scan.truncated">（已截断，继续滚动加载）</span>
+          {{ t("explorer.totalCount", { n: totalShown }) }}
+          <span v-if="scan.truncated">{{ t("explorer.truncated") }}</span>
         </div>
       </div>
 
@@ -113,25 +113,25 @@
             @changed="onValueChanged"
           />
         </template>
-        <n-empty v-else description="选择左侧的键查看 / 编辑值" style="margin-top: 120px" />
+        <n-empty v-else :description="t('explorer.selectKeyHint')" style="margin-top: 120px" />
       </div>
     </div>
 
     <!-- 重命名弹窗 -->
-    <n-modal v-model:show="renameVisible" preset="card" title="重命名键" style="width: 420px">
-      <n-input v-model:value="renameTarget" placeholder="新键名" />
+    <n-modal v-model:show="renameVisible" preset="card" :title="t('explorer.renameTitle')" style="width: 420px">
+      <n-input v-model:value="renameTarget" :placeholder="t('explorer.newKeyNamePlaceholder')" />
       <template #footer>
-        <n-button type="primary" :loading="renaming" @click="doRename">确定</n-button>
+        <n-button type="primary" :loading="renaming" @click="doRename">{{ t("common.confirm") }}</n-button>
       </template>
     </n-modal>
 
     <!-- 新建键弹窗 -->
-    <n-modal v-model:show="createVisible" preset="card" title="新建键" style="width: 480px">
+    <n-modal v-model:show="createVisible" preset="card" :title="t('explorer.createTitle')" style="width: 480px">
       <n-form label-placement="top" size="small">
-        <n-form-item label="键名">
-          <n-input v-model:value="createKeyName" placeholder="例如 user:1001" />
+        <n-form-item :label="t('explorer.keyName')">
+          <n-input v-model:value="createKeyName" :placeholder="t('explorer.placeholder.keyName')" />
         </n-form-item>
-        <n-form-item v-if="!isMemcached" label="类型">
+        <n-form-item v-if="!isMemcached" :label="t('explorer.kind')">
           <n-radio-group v-model:value="createKind" size="small">
             <n-radio-button value="string">String</n-radio-button>
             <n-radio-button value="hash">Hash</n-radio-button>
@@ -141,27 +141,27 @@
             <n-radio-button value="stream">Stream</n-radio-button>
           </n-radio-group>
         </n-form-item>
-        <n-form-item v-if="createKind === 'hash' || createKind === 'stream'" label="字段名">
-          <n-input v-model:value="createField" placeholder="字段名" />
+        <n-form-item v-if="createKind === 'hash' || createKind === 'stream'" :label="t('explorer.fieldName')">
+          <n-input v-model:value="createField" :placeholder="t('explorer.fieldName')" />
         </n-form-item>
-        <n-form-item v-if="createKind === 'zset'" label="分数">
+        <n-form-item v-if="createKind === 'zset'" :label="t('explorer.score')">
           <n-input-number v-model:value="createScore" size="small" style="width: 140px" />
         </n-form-item>
-        <n-form-item v-if="isMemcached" label="值">
+        <n-form-item v-if="isMemcached" :label="t('explorer.value')">
           <n-input v-model:value="createValue" type="textarea" :autosize="{ minRows: 3, maxRows: 8 }" />
         </n-form-item>
-        <n-form-item v-else-if="createKind === 'string'" label="值">
+        <n-form-item v-else-if="createKind === 'string'" :label="t('explorer.value')">
           <n-input v-model:value="createValue" type="textarea" :autosize="{ minRows: 3, maxRows: 8 }" />
         </n-form-item>
-        <n-form-item v-else label="初始内容">
+        <n-form-item v-else :label="t('explorer.initialContent')">
           <n-input
             v-model:value="createValue"
-            :placeholder="createKind === 'list' ? '初始元素' : createKind === 'set' ? '初始成员' : createKind === 'zset' ? '初始成员' : createKind === 'stream' ? '值' : '字段值'"
+            :placeholder="createKind === 'list' ? t('explorer.placeholder.element') : createKind === 'set' ? t('explorer.placeholder.member') : createKind === 'zset' ? t('explorer.placeholder.member') : createKind === 'stream' ? t('explorer.value') : t('explorer.placeholder.fieldValue')"
           />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button type="primary" :loading="creating" @click="doCreate">创建</n-button>
+        <n-button type="primary" :loading="creating" @click="doCreate">{{ t("explorer.create") }}</n-button>
       </template>
     </n-modal>
   </div>
@@ -176,6 +176,7 @@ import ValueEditor from "@/components/ValueEditor.vue";
 import type { ScanPage, ValueView } from "@/types";
 import * as api from "@/api";
 import { useConnectionStore } from "@/store";
+import { t } from "@/i18n";
 
 const SearchIcon = SearchOutline;
 const DeleteIcon = TrashOutline;
@@ -189,10 +190,10 @@ const conn = computed(() => store.byId(connId.value));
 const isMemcached = computed(() => conn.value?.mode === "memcached");
 const connIcon = computed(() => (isMemcached.value ? Grid : Cube));
 const iconColor = computed(() => (isMemcached.value ? "#00ADD8" : "#D82C20"));
-const connName = computed(() => conn.value?.name || "未知连接");
+const connName = computed(() => conn.value?.name || t("console.unknownConn"));
 const modeText = computed(() => {
   const m = conn.value?.mode;
-  return m === "single" ? "单机" : m === "masterSlave" ? "主从" : m === "sentinel" ? "哨兵" : m === "memcached" ? "Memcached" : "集群";
+  return t("mode." + m);
 });
 
 const pattern = ref("*");
@@ -235,8 +236,8 @@ const dbOptions = computed(() =>
   databases.value.map((d) => ({ label: `db${d}`, value: d }))
 );
 const replicaOptions = computed(() => [
-  { label: "主库", value: null as any },
-  ...replicas.value.map((i) => ({ label: `从库 ${i}`, value: i })),
+  { label: t("console.master"), value: null as any },
+  ...replicas.value.map((i) => ({ label: t("console.replica", { i }), value: i })),
 ]);
 const totalShown = computed(() => displayKeys.value.length);
 
@@ -330,7 +331,7 @@ const displayKeys = computed(() => {
 async function removeKey(k: string) {
   try {
     await api.deleteKeys(connId.value, [k]);
-    message.success(`已删除 ${k}`);
+    message.success(t("explorer.deletedKey", { key: k }));
     keys.value = keys.value.filter((x) => x !== k);
     if (currentKey.value === k) {
       currentKey.value = "";
@@ -437,7 +438,7 @@ async function onValueChanged() {
 async function onSwitchDb(db: number) {
   try {
     await api.switchDatabase(connId.value, db);
-    message.success(`已切换到 db${db}`);
+    message.success(t("explorer.switchedDb", { db }));
     await store.refresh();
     await reloadKeys();
   } catch (e) {
@@ -447,7 +448,7 @@ async function onSwitchDb(db: number) {
 
 function openRename(key: string) {
   if (isMemcached.value) {
-    message.warning("Memcached 不支持键重命名");
+    message.warning(t("explorer.memcachedNoRename"));
     return;
   }
   renamingKey.value = key;
@@ -466,9 +467,9 @@ function openCreate() {
 
 async function doCreate() {
   const name = createKeyName.value.trim();
-  if (!name) return message.warning("键名不能为空");
+  if (!name) return message.warning(t("explorer.keyNameEmpty"));
   if (createKind.value !== "string" && !createValue.value.trim())
-    return message.warning("初始内容不能为空");
+    return message.warning(t("explorer.initialEmpty"));
   creating.value = true;
   try {
     // zset 的成员放在 createValue，分数单独
@@ -480,7 +481,7 @@ async function doCreate() {
       createKind.value === "zset" ? "" : createValue.value,
       createKind.value === "zset" ? createScore.value : 1,
     );
-    message.success(`已创建 ${name}`);
+    message.success(t("explorer.created", { name }));
     createVisible.value = false;
     pattern.value = "*";
     await reloadKeys();
@@ -493,11 +494,11 @@ async function doCreate() {
 }
 
 async function doRename() {
-  if (!renameTarget.value.trim()) return message.warning("键名不能为空");
+  if (!renameTarget.value.trim()) return message.warning(t("explorer.keyNameEmpty"));
   renaming.value = true;
   try {
     await api.renameKey(connId.value, renamingKey.value, renameTarget.value);
-    message.success("已重命名");
+    message.success(t("explorer.renamed"));
     renameVisible.value = false;
     await reloadKeys();
     if (currentKey.value === renamingKey.value) {
@@ -514,7 +515,7 @@ async function doRename() {
 async function disconnect() {
   try {
     await api.disconnectConnection(connId.value);
-    message.success("已断开");
+    message.success(t("explorer.disconnected"));
     router.push("/");
   } catch (e) {
     message.error(String(e));

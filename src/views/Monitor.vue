@@ -3,46 +3,46 @@
     <div class="toolbar">
       <n-icon :component="connIcon" :size="15" :color="iconColor" :title="typeTitle" style="vertical-align: -2px" />
       <span class="conn-name">{{ connName }}</span>
-      <n-button size="small" @click="go('/explorer/' + connId)">查看数据</n-button>
-      <n-button size="small" @click="go('/console/' + connId)">命令行</n-button>
-      <n-button size="small" @click="clearAll">清空</n-button>
+      <n-button size="small" @click="go('/explorer/' + connId)">{{ t("monitor.viewData") }}</n-button>
+      <n-button size="small" @click="go('/console/' + connId)">{{ t("monitor.console") }}</n-button>
+      <n-button size="small" @click="clearAll">{{ t("monitor.clear") }}</n-button>
       <n-switch v-model:value="autoScroll" size="small" />
-      <span class="muted">自动滚动</span>
+      <span class="muted">{{ t("monitor.autoScroll") }}</span>
     </div>
 
     <div v-if="isMemcached" style="margin: 60px auto; text-align: center">
-      <n-empty description="Memcached 不支持实时监控（Pub/Sub / MONITOR）" />
+      <n-empty :description="t('monitor.memcachedUnsupported')" />
     </div>
 
     <n-tabs v-else type="line" animated style="flex: 1; min-height: 0">
       <!-- 订阅 -->
-      <n-tab-pane name="pubsub" tab="Pub/Sub 订阅">
+      <n-tab-pane name="pubsub" :tab="t('monitor.tabPubsub')">
         <div class="tab-body">
           <div class="pubsub-control">
             <n-input
               v-model:value="channelsInput"
               size="small"
-              placeholder="频道，逗号分隔，如 news,events"
+              :placeholder="t('monitor.channelsPlaceholder')"
               style="flex: 1"
               clearable
             />
             <n-input
               v-model:value="patternsInput"
               size="small"
-              placeholder="模式（可选），如 news.*"
+              :placeholder="t('monitor.patternsPlaceholder')"
               style="flex: 1"
               clearable
             />
             <n-button size="small" type="primary" :disabled="subscribed" @click="startSubscribe">
-              订阅
+              {{ t("monitor.subscribe") }}
             </n-button>
-            <n-button size="small" :disabled="!subscribed" @click="stopSubscribe">取消订阅</n-button>
+            <n-button size="small" :disabled="!subscribed" @click="stopSubscribe">{{ t("monitor.unsubscribe") }}</n-button>
           </div>
 
           <div class="pubsub-send">
-            <n-input v-model:value="publishChannel" size="small" placeholder="发送频道" style="width: 200px" />
-            <n-input v-model:value="publishMessage" size="small" placeholder="消息内容" style="flex: 1" />
-            <n-button size="small" type="primary" @click="publish">发布</n-button>
+            <n-input v-model:value="publishChannel" size="small" :placeholder="t('monitor.sendChannel')" style="width: 200px" />
+            <n-input v-model:value="publishMessage" size="small" :placeholder="t('monitor.messageContent')" style="flex: 1" />
+            <n-button size="small" type="primary" @click="publish">{{ t("monitor.publish") }}</n-button>
           </div>
 
           <div class="msg-list" ref="msgListRef">
@@ -54,13 +54,13 @@
               <span class="msg-text">{{ m.text }}</span>
               <span class="muted msg-server">{{ m.server }}</span>
             </div>
-            <n-empty v-if="messages.length === 0" description="尚未订阅" style="margin-top: 40px" />
+            <n-empty v-if="messages.length === 0" :description="t('monitor.notSubscribed')" style="margin-top: 40px" />
           </div>
         </div>
       </n-tab-pane>
 
       <!-- MONITOR -->
-      <n-tab-pane name="monitor" tab="MONITOR 实时命令">
+      <n-tab-pane name="monitor" :tab="t('monitor.tabMonitor')">
         <div class="tab-body">
           <div class="monitor-control">
             <n-button
@@ -69,7 +69,7 @@
               :loading="monitorStarting"
               @click="monitoring ? stopMonitor() : startMonitor()"
             >
-              {{ monitoring ? "停止 MONITOR" : "开启 MONITOR" }}
+              {{ monitoring ? t("monitor.stopMonitor") : t("monitor.startMonitor") }}
             </n-button>
             <span class="muted">{{ monitorModeTip }}</span>
           </div>
@@ -81,7 +81,7 @@
               <span class="monitor-cmd">{{ m.command }}</span>
               <span class="monitor-args muted">{{ m.args.join(" ") }}</span>
             </div>
-            <n-empty v-if="monitorEvents.length === 0" description="开启 MONITOR 后实时显示服务器收到的命令" style="margin-top: 40px" />
+            <n-empty v-if="monitorEvents.length === 0" :description="t('monitor.monitorEmpty')" style="margin-top: 40px" />
           </div>
         </div>
       </n-tab-pane>
@@ -97,6 +97,7 @@ import { Cube, Grid } from "@vicons/ionicons5";
 import type { PubSubEvent } from "@/types";
 import * as api from "@/api";
 import { useConnectionStore } from "@/store";
+import { localeState, t } from "@/i18n";
 
 const route = useRoute();
 const router = useRouter();
@@ -104,14 +105,14 @@ const message = useMessage();
 const store = useConnectionStore();
 
 const connId = computed(() => route.params.id as string);
-const connName = computed(() => store.byId(connId.value)?.name || "未知连接");
+const connName = computed(() => store.byId(connId.value)?.name || t("console.unknownConn"));
 const isMemcached = computed(() => store.byId(connId.value)?.mode === "memcached");
 const connMode = computed(() => store.byId(connId.value)?.mode);
 const connIcon = computed(() => (connMode.value === "memcached" ? Grid : Cube));
 const iconColor = computed(() => (connMode.value === "memcached" ? "#00ADD8" : "#D82C20"));
 const typeTitle = computed(() => {
   const m = connMode.value;
-  return m === "single" ? "单机" : m === "masterSlave" ? "主从" : m === "sentinel" ? "哨兵" : m === "memcached" ? "Memcached" : "集群";
+  return t("mode." + m);
 });
 
 const channelsInput = ref("");
@@ -133,7 +134,7 @@ const go = (p: string) => router.push(p);
 
 const monitorModeTip = computed(() =>
   connMode.value === "cluster" || connMode.value === "sentinel"
-    ? "MONITOR 仅支持单机 / 主从模式"
+    ? t("monitor.monitorTip")
     : ""
 );
 
@@ -145,7 +146,7 @@ onBeforeUnmount(() => {
 async function startSubscribe() {
   const channels = channelsInput.value.split(/[,，\s]+/).filter(Boolean);
   if (channels.length === 0) {
-    message.warning("请至少输入一个频道");
+    message.warning(t("monitor.needChannel"));
     return;
   }
   const patterns = patternsInput.value.split(/[,，\s]+/).filter(Boolean);
@@ -156,7 +157,7 @@ async function startSubscribe() {
       if (autoScroll.value) scrollToBottom(msgListRef.value);
     });
     subscribed.value = true;
-    message.success(`已订阅 ${channels.length} 个频道`);
+    message.success(t("monitor.subscribed", { n: channels.length }));
   } catch (e) {
     message.error(String(e));
   }
@@ -167,17 +168,17 @@ async function stopSubscribe() {
     await api.pubsubUnsubscribe(connId.value, [], []);
     await api.stopTasks(connId.value);
     subscribed.value = false;
-    message.success("已取消订阅");
+    message.success(t("monitor.unsubscribed"));
   } catch (e) {
     message.error(String(e));
   }
 }
 
 async function publish() {
-  if (!publishChannel.value.trim()) return message.warning("请输入频道");
+  if (!publishChannel.value.trim()) return message.warning(t("monitor.needPublishChannel"));
   try {
     const receivers = await api.pubsubPublish(connId.value, publishChannel.value, publishMessage.value);
-    message.success(`已发布，${receivers} 个接收者`);
+    message.success(t("monitor.published", { n: receivers }));
     publishMessage.value = "";
   } catch (e) {
     message.error(String(e));
@@ -186,7 +187,7 @@ async function publish() {
 
 async function startMonitor() {
   if (connMode.value === "cluster" || connMode.value === "sentinel") {
-    message.warning("MONITOR 仅支持单机 / 主从模式");
+    message.warning(t("monitor.monitorTip"));
     return;
   }
   monitorStarting.value = true;
@@ -197,7 +198,7 @@ async function startMonitor() {
       if (autoScroll.value) scrollToBottom(monitorListRef.value);
     });
     monitoring.value = true;
-    message.success("MONITOR 已开启");
+    message.success(t("monitor.monitorStarted"));
   } catch (e) {
     message.error(String(e));
   } finally {
@@ -209,7 +210,7 @@ async function stopMonitor() {
   try {
     await api.stopTasks(connId.value);
     monitoring.value = false;
-    message.success("MONITOR 已停止");
+    message.success(t("monitor.monitorStopped"));
   } catch (e) {
     message.error(String(e));
   }
@@ -221,7 +222,7 @@ function scrollToBottom(el?: HTMLElement) {
 
 function fmtTime(ts: number) {
   const d = new Date(ts * 1000);
-  return d.toLocaleTimeString("zh-CN", { hour12: false }) + "." + String(d.getMilliseconds()).padStart(3, "0");
+  return d.toLocaleTimeString(localeState.value === "en" ? "en-US" : "zh-CN", { hour12: false }) + "." + String(d.getMilliseconds()).padStart(3, "0");
 }
 
 function clearAll() {

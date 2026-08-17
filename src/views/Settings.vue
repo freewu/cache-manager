@@ -1,16 +1,31 @@
 <template>
   <div class="settings-page">
     <div class="settings-header">
-      <h2>设置</h2>
-      <span class="muted">应用程序偏好设置</span>
+      <h2>{{ t("settings.title") }}</h2>
+      <span class="muted">{{ t("settings.subtitle") }}</span>
     </div>
 
+    <!-- ============ 语言 ============ -->
+    <n-card :title="t('settings.language')" size="small" class="settings-card">
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">{{ t("settings.language") }}</div>
+          <div class="setting-desc">{{ t("settings.languageDesc") }}</div>
+        </div>
+        <n-radio-group :value="locale" @update:value="onChangeLocale">
+          <n-radio-button v-for="l in LOCALES" :key="l" :value="l">
+            {{ LOCALE_LABELS[l] }}
+          </n-radio-button>
+        </n-radio-group>
+      </div>
+    </n-card>
+
     <!-- ============ 主题外观 ============ -->
-    <n-card title="主题外观" size="small" class="settings-card">
+    <n-card :title="t('settings.theme')" size="small" class="settings-card">
       <div class="theme-row">
         <n-radio-group :value="themeState.mode" @update:value="setTheme">
           <n-radio-button v-for="m in THEME_ORDER" :key="m" :value="m">
-            {{ THEME_LABELS[m] }}
+            {{ t("theme." + m) }}
           </n-radio-button>
         </n-radio-group>
         <div class="theme-preview" :class="`preview-${themeState.mode}`">
@@ -20,58 +35,78 @@
         </div>
       </div>
       <p class="card-desc">
-        当前：<b>{{ THEME_LABELS[themeState.mode] }}</b>
+        {{ t("settings.current") }}<b>{{ t("theme." + themeState.mode) }}</b>
         <template v-if="themeState.mode === 'auto'">
-          —— 跟随操作系统外观（
+          {{ t("settings.followSystem") }}
           <n-tag size="tiny" :bordered="false" :type="isDark ? 'primary' : 'default'">
-            {{ isDark ? "系统当前为深色" : "系统当前为浅色" }}
+            {{ isDark ? t("settings.systemDark") : t("settings.systemLight") }}
           </n-tag>
           ）
         </template>
         <template v-else>
-          —— 所有窗口统一使用{{ THEME_LABELS[themeState.mode] }}外观
+          {{ t("settings.unified", { name: t("theme." + themeState.mode) }) }}
         </template>
       </p>
     </n-card>
 
     <!-- ============ 窗口行为 ============ -->
-    <n-card title="窗口行为" size="small" class="settings-card">
+    <n-card :title="t('settings.window')" size="small" class="settings-card">
       <div class="setting-row">
         <div class="setting-info">
-          <div class="setting-name">关闭窗口时最小化到系统托盘</div>
-          <div class="setting-desc">关闭主窗口后程序驻留托盘，可从托盘菜单恢复或退出</div>
+          <div class="setting-name">{{ t("settings.minimizeToTray") }}</div>
+          <div class="setting-desc">{{ t("settings.minimizeToTrayDesc") }}</div>
         </div>
         <n-switch :value="settings.minimizeToTray" :loading="settingsLoading" @update:value="setMinimizeToTray" />
       </div>
     </n-card>
 
     <!-- ============ 连接导出 ============ -->
-    <n-card title="连接导出" size="small" class="settings-card">
+    <n-card :title="t('settings.export')" size="small" class="settings-card">
       <div class="setting-row column">
         <div class="setting-info">
-          <div class="setting-name">默认导出目录</div>
-          <div class="setting-desc">导出连接列表时保存到的文件夹；留空则使用系统下载目录</div>
+          <div class="setting-name">{{ t("settings.exportDir") }}</div>
+          <div class="setting-desc">{{ t("settings.exportDirDesc") }}</div>
         </div>
         <n-input
           v-model:value="exportDirDraft"
-          placeholder="例如 D:\backup\connections（留空使用默认下载目录）"
+          :placeholder="t('settings.exportDirPlaceholder')"
           clearable
         />
         <div class="setting-actions">
-          <n-button size="small" secondary @click="exportDirDraft = settings.exportDir || ''">重置</n-button>
-          <n-button size="small" type="primary" :loading="savingExportDir" @click="saveExportDir">保存导出目录</n-button>
+          <n-button size="small" secondary @click="exportDirDraft = settings.exportDir || ''">{{ t("settings.reset") }}</n-button>
+          <n-button size="small" type="primary" :loading="savingExportDir" @click="saveExportDir">{{ t("settings.saveExportDir") }}</n-button>
+        </div>
+      </div>
+    </n-card>
+
+    <!-- ============ 项目地址 ============ -->
+    <n-card :title="t('settings.project')" size="small" class="settings-card">
+      <div class="setting-row column">
+        <div class="setting-info">
+          <div class="setting-name">GitHub</div>
+          <div class="setting-desc">{{ t("settings.projectDesc") }}</div>
+        </div>
+        <div class="project-links">
+          <n-button size="small" secondary @click="openUrl(PROJECT_URL)">
+            <template #icon><n-icon><LogoGithub /></n-icon></template>
+            {{ t("settings.openProject") }}
+          </n-button>
+          <n-button size="small" type="primary" @click="openUrl(ISSUE_URL)">
+            <template #icon><n-icon><BugOutline /></n-icon></template>
+            {{ t("settings.submitIssue") }}
+          </n-button>
         </div>
       </div>
     </n-card>
 
     <!-- ============ 关于 ============ -->
-    <n-card title="关于" size="small" class="settings-card">
+    <n-card :title="t('settings.about')" size="small" class="settings-card">
       <div class="setting-row">
         <div class="about-wrap">
           <img class="app-logo" :src="appLogo" alt="Cache Manager" />
           <div class="setting-info">
             <div class="setting-name">Cache Manager</div>
-            <div class="setting-desc">Redis / Memcached 桌面管理工具 · 支持单机 / 主从 / Sentinel / Cluster</div>
+            <div class="setting-desc">{{ t("settings.aboutDesc") }}</div>
           </div>
         </div>
         <n-tag size="small" type="info" :bordered="false">v{{ version }}</n-tag>
@@ -84,9 +119,15 @@
 import { onMounted, ref } from "vue";
 import { useMessage, useOsTheme } from "naive-ui";
 import { getVersion } from "@tauri-apps/api/app";
-import { getAppSettings, setAppSettings } from "@/api";
-import { setTheme, THEME_LABELS, THEME_ORDER, themeState } from "@/theme";
+import { BugOutline, LogoGithub } from "@vicons/ionicons5";
+import { getAppSettings, setAppSettings, openUrl as openExternal } from "@/api";
+import { setTheme, THEME_ORDER, themeState } from "@/theme";
+import { LOCALES, LOCALE_LABELS, localeState, setLocale, t } from "@/i18n";
 import appLogo from "@/assets/logo.png";
+
+/** 项目地址与 Issue 链接 */
+const PROJECT_URL = "https://github.com/freewu/cache-manager";
+const ISSUE_URL = "https://github.com/freewu/cache-manager/issues/new";
 
 const osTheme = useOsTheme();
 const isDark = ref(osTheme.value === "dark");
@@ -98,6 +139,22 @@ const settingsLoading = ref(false);
 
 const exportDirDraft = ref("");
 const savingExportDir = ref(false);
+
+const locale = localeState;
+
+function onChangeLocale(l: (typeof LOCALES)[number]) {
+  setLocale(l);
+  message.success(t("settings.language") + ": " + LOCALE_LABELS[l]);
+}
+
+/** 打开外部链接（Tauri 环境走 invoke，浏览器环境回退 window.open） */
+async function openUrl(url: string) {
+  try {
+    await openExternal(url);
+  } catch {
+    window.open(url, "_blank");
+  }
+}
 
 async function setMinimizeToTray(v: boolean) {
   settingsLoading.value = true;
@@ -115,7 +172,7 @@ async function saveExportDir() {
     const dir = exportDirDraft.value.trim();
     settings.value.exportDir = dir || null;
     await setAppSettings({ minimizeToTray: settings.value.minimizeToTray, exportDir: settings.value.exportDir });
-    message.success(dir ? `导出目录已设置为 ${dir}` : "已恢复默认下载目录");
+    message.success(dir ? t("settings.exportDirSaved", { dir }) : t("settings.exportDirReset"));
   } catch (e) {
     message.error(String(e));
   } finally {
@@ -217,6 +274,11 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+.project-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .about-wrap {
   display: flex;

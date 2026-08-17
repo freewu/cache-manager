@@ -2,24 +2,24 @@
   <n-modal
     :show="show"
     preset="card"
-    :title="isEdit ? '编辑连接' : '新建连接'"
+    :title="isEdit ? t('connectionForm.editTitle') : t('connectionForm.createTitle')"
     style="width: 640px"
     @update:show="(v: boolean) => $emit('update:show', v)"
   >
     <n-form :model="form" label-placement="left" label-width="110" size="small">
-      <n-form-item label="名称" required>
-        <n-input v-model:value="form.name" placeholder="例如：生产集群" />
+      <n-form-item :label="t('connectionForm.name')" required>
+        <n-input v-model:value="form.name" :placeholder="t('connectionForm.placeholder.name')" />
       </n-form-item>
 
-      <n-form-item label="连接类型" required>
+      <n-form-item :label="t('connectionForm.type')" required>
         <n-tabs v-model:value="typeTab" type="segment" size="small" style="width: 100%">
           <n-tab-pane name="redis" tab="Redis">
             <div style="padding-top: 10px">
               <n-radio-group v-model:value="form.mode">
-                <n-radio-button value="single">单机</n-radio-button>
-                <n-radio-button value="masterSlave">主从</n-radio-button>
-                <n-radio-button value="sentinel">哨兵</n-radio-button>
-                <n-radio-button value="cluster">集群</n-radio-button>
+                <n-radio-button value="single">{{ t("mode.single") }}</n-radio-button>
+                <n-radio-button value="masterSlave">{{ t("mode.masterSlave") }}</n-radio-button>
+                <n-radio-button value="sentinel">{{ t("mode.sentinel") }}</n-radio-button>
+                <n-radio-button value="cluster">{{ t("mode.cluster") }}</n-radio-button>
               </n-radio-group>
             </div>
           </n-tab-pane>
@@ -29,7 +29,7 @@
 
       <n-form-item :label="modeLabel" required>
         <n-input-group>
-          <n-input v-model:value="form.host" placeholder="127.0.0.1" style="flex: 1" />
+          <n-input v-model:value="form.host" :placeholder="t('connectionForm.placeholder.host')" style="flex: 1" />
           <n-input-number
             v-model:value="form.port"
             :show-button="false"
@@ -38,44 +38,44 @@
         </n-input-group>
       </n-form-item>
 
-      <n-form-item v-if="form.mode === 'sentinel'" label="Master 名称" required>
-        <n-input v-model:value="form.serviceName" placeholder="mymaster" />
+      <n-form-item v-if="form.mode === 'sentinel'" :label="t('connectionForm.masterName')" required>
+        <n-input v-model:value="form.serviceName" :placeholder="t('connectionForm.placeholder.serviceName')" />
       </n-form-item>
 
-      <n-form-item v-if="form.mode !== 'cluster' && form.mode !== 'memcached'" label="数据库">
+      <n-form-item v-if="form.mode !== 'cluster' && form.mode !== 'memcached'" :label="t('connectionForm.database')">
         <n-input-number v-model:value="form.database" :min="0" :max="255" />
       </n-form-item>
 
-      <n-form-item v-if="form.mode !== 'single' && form.mode !== 'memcached'" label="附加节点">
+      <n-form-item v-if="form.mode !== 'single' && form.mode !== 'memcached'" :label="t('connectionForm.extraNodes')">
         <div style="width: 100%">
           <div
             v-for="(n, i) in form.nodes"
             :key="i"
             style="display: flex; gap: 6px; margin-bottom: 6px"
           >
-            <n-input v-model:value="n.host" placeholder="host" style="flex: 1" />
+            <n-input v-model:value="n.host" :placeholder="t('connectionForm.placeholder.nodeHost')" style="flex: 1" />
             <n-input-number v-model:value="n.port" :show-button="false" style="width: 100px" />
-            <n-button quaternary type="error" @click="form.nodes.splice(i, 1)">删除</n-button>
+            <n-button quaternary type="error" @click="form.nodes.splice(i, 1)">{{ t("connectionForm.delete") }}</n-button>
           </div>
           <n-button size="tiny" @click="form.nodes.push({ host: '', port: 6379 })">
-            + 添加{{ nodeLabel }}
+            {{ t("connectionForm.addNode", { name: nodeLabel }) }}
           </n-button>
         </div>
       </n-form-item>
 
-      <n-form-item v-if="form.mode !== 'memcached'" label="用户名">
-        <n-input v-model:value="form.username" placeholder="ACL 用户名（可选）" />
+      <n-form-item v-if="form.mode !== 'memcached'" :label="t('connectionForm.username')">
+        <n-input v-model:value="form.username" :placeholder="t('connectionForm.placeholder.aclUsername')" />
       </n-form-item>
-      <n-form-item v-if="form.mode !== 'memcached'" label="密码">
+      <n-form-item v-if="form.mode !== 'memcached'" :label="t('connectionForm.password')">
         <n-input v-model:value="form.password" type="password" show-password-on="click" />
       </n-form-item>
 
-      <n-form-item v-if="form.mode !== 'memcached'" label="选项">
+      <n-form-item v-if="form.mode !== 'memcached'" :label="t('connectionForm.options')">
         <n-space>
           <n-checkbox v-model:checked="form.tls">TLS/SSL</n-checkbox>
         </n-space>
       </n-form-item>
-      <n-form-item label="超时(ms)">
+      <n-form-item :label="t('connectionForm.timeout')">
         <n-input-number v-model:value="form.connectTimeoutMs" :min="1000" :step="1000" />
       </n-form-item>
     </n-form>
@@ -83,12 +83,12 @@
     <template #footer>
       <div style="display: flex; justify-content: space-between; align-items: center">
         <div class="muted" v-if="testResult !== null">
-          {{ testResult.ok ? "✔ 连接成功" : "✘ " + testResult.msg }}
+          {{ testResult.ok ? t("connectionForm.testOk") : t("connectionForm.testFail", { msg: testResult.msg }) }}
         </div>
         <div style="margin-left: auto; display: flex; gap: 8px">
-          <n-button @click="$emit('update:show', false)">取消</n-button>
-          <n-button :loading="testing" @click="onTest">测试连接</n-button>
-          <n-button type="primary" :loading="saving" @click="onSave">保存并连接</n-button>
+          <n-button @click="$emit('update:show', false)">{{ t("connectionForm.cancel") }}</n-button>
+          <n-button :loading="testing" @click="onTest">{{ t("connectionForm.test") }}</n-button>
+          <n-button type="primary" :loading="saving" @click="onSave">{{ t("connectionForm.saveConnect") }}</n-button>
         </div>
       </div>
     </template>
@@ -101,6 +101,7 @@ import { useMessage } from "naive-ui";
 import type { ConnConfig, ConnMode } from "@/types";
 import * as api from "@/api";
 import { useConnectionStore } from "@/store";
+import { t } from "@/i18n";
 
 const props = defineProps<{
   show: boolean;
@@ -184,24 +185,24 @@ watch(
 const modeLabel = computed(() => {
   switch (form.mode) {
     case "sentinel":
-      return "哨兵地址";
+      return t("connectionForm.modeLabel.sentinel");
     case "cluster":
-      return "种子节点";
+      return t("connectionForm.modeLabel.cluster");
     case "masterSlave":
-      return "主库地址";
+      return t("connectionForm.modeLabel.masterSlave");
     default:
-      return "地址";
+      return t("connectionForm.modeLabel.default");
   }
 });
 
 const nodeLabel = computed(() => {
   switch (form.mode) {
     case "sentinel":
-      return "哨兵节点";
+      return t("connectionForm.nodeLabel.sentinel");
     case "cluster":
-      return "集群节点";
+      return t("connectionForm.nodeLabel.cluster");
     default:
-      return "从库";
+      return t("connectionForm.nodeLabel.default");
   }
 });
 
@@ -212,7 +213,7 @@ async function onTest() {
   try {
     await api.testConnection(cfg);
     testResult.value = { ok: true, msg: "" };
-    message.success("连接成功");
+    message.success(t("connectionForm.success"));
   } catch (e) {
     testResult.value = { ok: false, msg: String(e) };
     message.error(String(e));
@@ -227,7 +228,7 @@ async function onSave() {
   saving.value = true;
   try {
     await store.saveAndConnect(cfg);
-    message.success("已连接");
+    message.success(t("connectionForm.connected"));
     emit("update:show", false);
     emit("saved");
   } catch (e) {
@@ -239,15 +240,15 @@ async function onSave() {
 
 function buildPayload(): ConnConfig | null {
   if (!form.name.trim()) {
-    message.warning("请填写连接名称");
+    message.warning(t("connectionForm.err.name"));
     return null;
   }
   if (!form.host.trim()) {
-    message.warning("请填写主机地址");
+    message.warning(t("connectionForm.err.host"));
     return null;
   }
   if (form.mode === "sentinel" && !form.serviceName?.trim()) {
-    message.warning("Sentinel 模式需要填写 Master 名称");
+    message.warning(t("connectionForm.err.sentinelMaster"));
     return null;
   }
   const cfg: ConnConfig = {

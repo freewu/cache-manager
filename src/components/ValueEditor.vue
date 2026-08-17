@@ -4,23 +4,23 @@
     <div class="meta-bar">
       <n-space align="center" :size="12">
         <n-tag size="small" type="info" :bordered="false">{{ typeText(view.type) }}</n-tag>
-        <span class="muted">长度: {{ view.length }}</span>
-        <span class="muted">TTL: {{ ttlText }}</span>
+        <span class="muted">{{ t("valueEditor.length", { n: view.length }) }}</span>
+        <span class="muted">{{ t("valueEditor.ttl", { ttl: ttlText }) }}</span>
         <n-input-number
           v-if="showTtlInput"
           v-model:value="newTtl"
           size="tiny"
           :min="-1"
           style="width: 130px"
-          placeholder="TTL 秒 (-1 永久)"
+          :placeholder="t('valueEditor.ttlPlaceholder')"
         />
-        <n-button v-if="showTtlInput" size="tiny" @click="applyTtl">设置 TTL</n-button>
-        <n-button size="tiny" @click="refresh">刷新</n-button>
-        <n-popconfirm positive-text="删除" negative-text="取消" @positive-click="deleteKey">
+        <n-button v-if="showTtlInput" size="tiny" @click="applyTtl">{{ t("valueEditor.setTtl") }}</n-button>
+        <n-button size="tiny" @click="refresh">{{ t("valueEditor.refresh") }}</n-button>
+        <n-popconfirm :positive-text="t('common.delete')" :negative-text="t('common.cancel')" @positive-click="deleteKey">
           <template #trigger>
-            <n-button size="tiny" type="error" quaternary>删除键</n-button>
+            <n-button size="tiny" type="error" quaternary>{{ t("valueEditor.deleteKey") }}</n-button>
           </template>
-          确认删除键 <b>{{ props.view.key }}</b>？
+          <span v-html="t('valueEditor.confirmDelete', { key: props.view.key })"></span>
         </n-popconfirm>
       </n-space>
     </div>
@@ -30,28 +30,28 @@
       <!-- JSON 格式化视图（检测到合法 JSON 时） -->
       <div v-if="isJson && !showRaw" class="json-view-wrap">
         <pre class="json-view" :class="{ dark: isDark }" v-html="jsonHighlight"></pre>
-        <div class="json-hint muted">JSON 格式 · 已格式化展示，保存仍按原文写入</div>
+        <div class="json-hint muted">{{ t("valueEditor.jsonHint") }}</div>
       </div>
       <n-input
         v-else
         v-model:value="stringDraft"
         type="textarea"
         :autosize="{ minRows: 6, maxRows: 20 }"
-        placeholder="值内容"
+        :placeholder="t('valueEditor.valuePlaceholder')"
       />
       <div class="editor-actions">
         <n-space>
-          <n-button size="small" type="primary" :loading="saving" @click="saveString">保存</n-button>
+          <n-button size="small" type="primary" :loading="saving" @click="saveString">{{ t("valueEditor.save") }}</n-button>
           <template v-if="isJson">
             <n-button size="small" @click="showRaw = !showRaw">
-              {{ showRaw ? "查看格式化 JSON" : "查看原始文本" }}
+              {{ showRaw ? t("valueEditor.viewFormatted") : t("valueEditor.viewRaw") }}
             </n-button>
             <n-button v-if="!showRaw" size="small" @click="formatDraft">
-              以格式化文本编辑
+              {{ t("valueEditor.editFormatted") }}
             </n-button>
           </template>
-          <n-button size="small" @click="toggleEncoding">切换编码 (当前: {{ stringEncoding }})</n-button>
-          <n-tag v-if="payload.value.encoding === 'base64'" size="small" type="warning">二进制值 (Base64)</n-tag>
+          <n-button size="small" @click="toggleEncoding">{{ t("valueEditor.switchEncoding", { enc: stringEncoding }) }}</n-button>
+          <n-tag v-if="payload.value.encoding === 'base64'" size="small" type="warning">{{ t("valueEditor.binaryValue") }}</n-tag>
         </n-space>
       </div>
     </div>
@@ -67,9 +67,9 @@
       />
       <div class="editor-actions">
         <n-space>
-          <n-button size="small" @click="showAddField = true">新增字段</n-button>
+          <n-button size="small" @click="showAddField = true">{{ t("valueEditor.addField") }}</n-button>
           <n-button size="small" :disabled="!selectedFields.length" type="error" @click="deleteFields">
-            删除选中 ({{ selectedFields.length }})
+            {{ t("valueEditor.deleteSelected", { n: selectedFields.length }) }}
           </n-button>
         </n-space>
       </div>
@@ -80,9 +80,9 @@
       <n-data-table size="small" :columns="listColumns" :data="listRows" :max-height="480" />
       <div class="editor-actions">
         <n-space align="center">
-          <n-input v-model:value="newListValue" size="small" placeholder="元素值" style="width: 240px" />
-          <n-button size="small" @click="pushList(true)">RPUSH 尾部</n-button>
-          <n-button size="small" @click="pushList(false)">LPUSH 头部</n-button>
+          <n-input v-model:value="newListValue" size="small" :placeholder="t('valueEditor.elementPlaceholder')" style="width: 240px" />
+          <n-button size="small" @click="pushList(true)">{{ t("valueEditor.rpushTail") }}</n-button>
+          <n-button size="small" @click="pushList(false)">{{ t("valueEditor.lpushHead") }}</n-button>
         </n-space>
       </div>
     </div>
@@ -92,8 +92,8 @@
       <n-data-table size="small" :columns="setColumns" :data="setRows" :max-height="480" />
       <div class="editor-actions">
         <n-space align="center">
-          <n-input v-model:value="newMember" size="small" placeholder="新成员" style="width: 240px" />
-          <n-button size="small" type="primary" @click="addMember">添加成员</n-button>
+          <n-input v-model:value="newMember" size="small" :placeholder="t('valueEditor.newMember')" style="width: 240px" />
+          <n-button size="small" type="primary" @click="addMember">{{ t("valueEditor.addMember") }}</n-button>
         </n-space>
       </div>
     </div>
@@ -103,9 +103,9 @@
       <n-data-table size="small" :columns="zsetColumns" :data="payload.members" :max-height="480" />
       <div class="editor-actions">
         <n-space align="center">
-          <n-input v-model:value="newZMember" size="small" placeholder="成员" style="width: 240px" />
-          <n-input-number v-model:value="newZScore" size="small" style="width: 140px" placeholder="分数" />
-          <n-button size="small" type="primary" @click="addZMember">添加</n-button>
+          <n-input v-model:value="newZMember" size="small" :placeholder="t('valueEditor.member')" style="width: 240px" />
+          <n-input-number v-model:value="newZScore" size="small" style="width: 140px" :placeholder="t('valueEditor.score')" />
+          <n-button size="small" type="primary" @click="addZMember">{{ t("valueEditor.add") }}</n-button>
         </n-space>
       </div>
     </div>
@@ -115,28 +115,28 @@
       <n-data-table size="small" :columns="streamColumns" :data="payload.entries" :max-height="480" :scroll-x="900" />
       <div class="editor-actions">
         <n-space align="center">
-          <n-input v-model:value="newStreamId" size="small" placeholder="ID (* 自动)" style="width: 140px" />
-          <n-input v-model:value="newStreamField" size="small" placeholder="字段" style="width: 160px" />
-          <n-input v-model:value="newStreamValue" size="small" placeholder="值" style="width: 160px" />
-          <n-button size="small" type="primary" @click="addStreamEntry">XADD</n-button>
+          <n-input v-model:value="newStreamId" size="small" :placeholder="t('valueEditor.idAuto')" style="width: 140px" />
+          <n-input v-model:value="newStreamField" size="small" :placeholder="t('valueEditor.field')" style="width: 160px" />
+          <n-input v-model:value="newStreamValue" size="small" :placeholder="t('valueEditor.value')" style="width: 160px" />
+          <n-button size="small" type="primary" @click="addStreamEntry">{{ t("valueEditor.xadd") }}</n-button>
         </n-space>
       </div>
     </div>
 
-    <n-alert v-else type="warning" title="暂不支持的类型">该键类型暂不支持编辑</n-alert>
+    <n-alert v-else type="warning" :title="t('valueEditor.unsupportedTitle')">{{ t("valueEditor.unsupportedDesc") }}</n-alert>
 
     <!-- 新增 Hash 字段弹窗 -->
-    <n-modal v-model:show="showAddField" preset="card" title="新增字段" style="width: 440px">
+    <n-modal v-model:show="showAddField" preset="card" :title="t('valueEditor.addField')" style="width: 440px">
       <n-form label-placement="top" size="small">
-        <n-form-item label="字段名">
+        <n-form-item :label="t('valueEditor.fieldName')">
           <n-input v-model:value="newFieldName" />
         </n-form-item>
-        <n-form-item label="值">
+        <n-form-item :label="t('valueEditor.value')">
           <n-input v-model:value="newFieldValue" type="textarea" :autosize="{ minRows: 3 }" />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button type="primary" :loading="saving" @click="addField">添加</n-button>
+        <n-button type="primary" :loading="saving" @click="addField">{{ t("valueEditor.add") }}</n-button>
       </template>
     </n-modal>
   </div>
@@ -149,6 +149,7 @@ import type { DataTableColumns } from "naive-ui";
 import type { EncodedValue, HashField, ValueView } from "@/types";
 import * as api from "@/api";
 import { themeState } from "@/theme";
+import { t } from "@/i18n";
 
 const props = defineProps<{ connId: string; view: ValueView }>();
 const emit = defineEmits<{ (e: "changed"): void }>();
@@ -203,7 +204,7 @@ const jsonHighlight = computed(() => {
 /** 把格式化文本写入草稿（保存时按此写入 Redis） */
 function formatDraft() {
   stringDraft.value = jsonPretty.value;
-  message.success("已填充格式化文本（保存将写入缩进后的内容）");
+  message.success(t("valueEditor.formatFilled"));
 }
 
 // 深色主题适配（与 App.vue 相同的判定逻辑）
@@ -241,12 +242,12 @@ watch(
 );
 
 const ttlText = computed(() => {
-  const t = props.view.ttl;
-  if (t < 0) return "永久";
-  if (t === 0) return "已过期";
-  if (t < 60) return `${t}s`;
-  if (t < 3600) return `${Math.floor(t / 60)}m${t % 60}s`;
-  return `${Math.floor(t / 3600)}h${Math.floor((t % 3600) / 60)}m`;
+  const ttl = props.view.ttl;
+  if (ttl < 0) return t("valueEditor.permanent");
+  if (ttl === 0) return t("valueEditor.expired");
+  if (ttl < 60) return `${ttl}s`;
+  if (ttl < 3600) return `${Math.floor(ttl / 60)}m${ttl % 60}s`;
+  return `${Math.floor(ttl / 3600)}h${Math.floor((ttl % 3600) / 60)}m`;
 });
 
 const typeText = (t: string) =>
@@ -264,7 +265,7 @@ async function refresh() {
 async function deleteKey() {
   try {
     await api.deleteKeys(props.connId, [props.view.key]);
-    message.success(`已删除 ${props.view.key}`);
+    message.success(t("valueEditor.deletedKey", { key: props.view.key }));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -281,7 +282,7 @@ function toggleEncoding() {
       stringDraft.value = decodeURIComponent(escape(atob(stringDraft.value)));
       stringEncoding.value = "utf8";
     } catch {
-      message.warning("不是有效的 Base64 内容");
+      message.warning(t("valueEditor.invalidBase64"));
     }
   }
 }
@@ -290,7 +291,7 @@ async function saveString() {
   saving.value = true;
   try {
     await api.setStringValue(props.connId, props.view.key, stringDraft.value, newTtl.value, stringEncoding.value);
-    message.success("已保存");
+    message.success(t("valueEditor.saved"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -303,7 +304,7 @@ async function saveString() {
 async function applyTtl() {
   try {
     await api.setTtl(props.connId, props.view.key, newTtl.value ?? -1);
-    message.success("TTL 已更新");
+    message.success(t("valueEditor.ttlUpdated"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -313,36 +314,36 @@ async function applyTtl() {
 // ---------- Hash ----------
 const hashColumns: DataTableColumns<HashField> = [
   {
-    title: "字段",
+    title: t("valueEditor.col.field"),
     key: "field",
     render: (r) => display(r.field),
     ellipsis: true,
   },
   {
-    title: "值",
+    title: t("valueEditor.col.value"),
     key: "value",
     render: (r) => display(r.value),
     ellipsis: true,
   },
   {
-    title: "操作",
+    title: t("valueEditor.col.op"),
     key: "op",
     width: 80,
     render: (r) =>
       h(
         NButton,
         { size: "tiny", type: "error", quaternary: true, onClick: () => deleteField(r) },
-        { default: () => "删除" }
+        { default: () => t("common.delete") }
       ),
   },
 ];
 
 async function addField() {
-  if (!newFieldName.value.trim()) return message.warning("字段名不能为空");
+  if (!newFieldName.value.trim()) return message.warning(t("valueEditor.fieldNameEmpty"));
   saving.value = true;
   try {
     await api.setHashField(props.connId, props.view.key, newFieldName.value, newFieldValue.value);
-    message.success("已添加");
+    message.success(t("valueEditor.added"));
     showAddField.value = false;
     newFieldName.value = "";
     newFieldValue.value = "";
@@ -357,7 +358,7 @@ async function addField() {
 async function deleteField(f: HashField) {
   try {
     await api.deleteHashFields(props.connId, props.view.key, [f.field.value]);
-    message.success("已删除");
+    message.success(t("valueEditor.deleted"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -368,7 +369,7 @@ async function deleteFields() {
   try {
     await api.deleteHashFields(props.connId, props.view.key, selectedFields.value);
     selectedFields.value = [];
-    message.success("已删除");
+    message.success(t("valueEditor.deleted"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -381,16 +382,16 @@ const listRows = computed(() =>
 );
 
 const listColumns: DataTableColumns = [
-  { title: "#", key: "index", width: 60 },
-  { title: "值", key: "value", render: (r: any) => display(r.value), ellipsis: true },
+  { title: t("valueEditor.col.index"), key: "index", width: 60 },
+  { title: t("valueEditor.col.value"), key: "value", render: (r: any) => display(r.value), ellipsis: true },
 ];
 
 async function pushList(tail: boolean) {
-  if (!newListValue.value) return message.warning("请输入元素值");
+  if (!newListValue.value) return message.warning(t("valueEditor.needElement"));
   try {
     await api.pushList(props.connId, props.view.key, [newListValue.value], tail);
     newListValue.value = "";
-    message.success("已推入");
+    message.success(t("valueEditor.pushed"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -402,25 +403,25 @@ const setRows = computed(() =>
   (props.view.payload as any).values.map((v: EncodedValue, i: number) => ({ id: i, value: v }))
 );
 const setColumns: DataTableColumns = [
-  { title: "成员", key: "value", render: (r: any) => display(r.value), ellipsis: true },
+  { title: t("valueEditor.col.member"), key: "value", render: (r: any) => display(r.value), ellipsis: true },
   {
-    title: "操作",
+    title: t("valueEditor.col.op"),
     key: "op",
     width: 80,
     render: (r: any) =>
       h(NPopconfirm, { onPositiveClick: () => removeMember(r.value.value) }, {
-        trigger: () => h(NButton, { size: "tiny", type: "error", quaternary: true }, { default: () => "删除" }),
-        default: () => "删除该成员？",
+        trigger: () => h(NButton, { size: "tiny", type: "error", quaternary: true }, { default: () => t("common.delete") }),
+        default: () => t("valueEditor.confirmDeleteMember"),
       }),
   },
 ];
 
 async function addMember() {
-  if (!newMember.value.trim()) return message.warning("请输入成员");
+  if (!newMember.value.trim()) return message.warning(t("valueEditor.needMember"));
   try {
     await api.addSetMembers(props.connId, props.view.key, [newMember.value]);
     newMember.value = "";
-    message.success("已添加");
+    message.success(t("valueEditor.added"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -430,7 +431,7 @@ async function addMember() {
 async function removeMember(member: string) {
   try {
     await api.removeSetMembers(props.connId, props.view.key, [member]);
-    message.success("已删除");
+    message.success(t("valueEditor.deleted"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -439,26 +440,26 @@ async function removeMember(member: string) {
 
 // ---------- ZSet ----------
 const zsetColumns: DataTableColumns = [
-  { title: "成员", key: "member", render: (r: any) => display(r.member), ellipsis: true },
-  { title: "分数", key: "score", width: 120 },
+  { title: t("valueEditor.col.member"), key: "member", render: (r: any) => display(r.member), ellipsis: true },
+  { title: t("valueEditor.col.score"), key: "score", width: 120 },
   {
-    title: "操作",
+    title: t("valueEditor.col.op"),
     key: "op",
     width: 80,
     render: (r: any) =>
       h(NPopconfirm, { onPositiveClick: () => removeZMember(r.member.value) }, {
-        trigger: () => h(NButton, { size: "tiny", type: "error", quaternary: true }, { default: () => "删除" }),
-        default: () => "删除该成员？",
+        trigger: () => h(NButton, { size: "tiny", type: "error", quaternary: true }, { default: () => t("common.delete") }),
+        default: () => t("valueEditor.confirmDeleteMember"),
       }),
   },
 ];
 
 async function addZMember() {
-  if (!newZMember.value.trim()) return message.warning("请输入成员");
+  if (!newZMember.value.trim()) return message.warning(t("valueEditor.needMember"));
   try {
     await api.addZsetMembers(props.connId, props.view.key, [[newZScore.value, newZMember.value]]);
     newZMember.value = "";
-    message.success("已添加");
+    message.success(t("valueEditor.added"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -468,7 +469,7 @@ async function addZMember() {
 async function removeZMember(member: string) {
   try {
     await api.removeZsetMembers(props.connId, props.view.key, [member]);
-    message.success("已删除");
+    message.success(t("valueEditor.deleted"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -477,33 +478,33 @@ async function removeZMember(member: string) {
 
 // ---------- Stream ----------
 const streamColumns: DataTableColumns = [
-  { title: "ID", key: "id", width: 140 },
+  { title: t("valueEditor.col.id"), key: "id", width: 140 },
   {
-    title: "字段",
+    title: t("valueEditor.col.field"),
     key: "fields",
     render: (r: any) =>
-      r.fields.map((f: HashField) => `${display(f.field)}=${display(f.value)}`).join(", ") || "(空)",
+      r.fields.map((f: HashField) => `${display(f.field)}=${display(f.value)}`).join(", ") || t("valueEditor.emptyFields"),
     ellipsis: true,
   },
   {
-    title: "操作",
+    title: t("valueEditor.col.op"),
     key: "op",
     width: 80,
     render: (r: any) =>
       h(NPopconfirm, { onPositiveClick: () => deleteStreamEntry(r.id) }, {
-        trigger: () => h(NButton, { size: "tiny", type: "error", quaternary: true }, { default: () => "删除" }),
-        default: () => "删除该条目？",
+        trigger: () => h(NButton, { size: "tiny", type: "error", quaternary: true }, { default: () => t("common.delete") }),
+        default: () => t("valueEditor.confirmDeleteEntry"),
       }),
   },
 ];
 
 async function addStreamEntry() {
-  if (!newStreamField.value.trim()) return message.warning("请输入字段名");
+  if (!newStreamField.value.trim()) return message.warning(t("valueEditor.needFieldName"));
   try {
     await api.xaddStream(props.connId, props.view.key, newStreamId.value, [[newStreamField.value, newStreamValue.value]]);
     newStreamField.value = "";
     newStreamValue.value = "";
-    message.success("已添加");
+    message.success(t("valueEditor.added"));
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -513,7 +514,7 @@ async function addStreamEntry() {
 async function deleteStreamEntry(id: string) {
   try {
     await api.xdelStream(props.connId, props.view.key, [id]);
-    message.success("已删除");
+    message.success(t("valueEditor.deleted"));
     emit("changed");
   } catch (e) {
     message.error(String(e));

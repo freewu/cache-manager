@@ -217,6 +217,16 @@ pub fn set_app_settings(app: AppHandle, settings: crate::store::AppSettings) -> 
     crate::store::save_settings(&app, &settings)
 }
 
+/// 使用系统默认浏览器打开外部链接（项目主页 / Issue 等）
+#[tauri::command]
+pub fn open_external(app: AppHandle, url: String) -> AppResult<()> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|e| crate::error::AppError::new(format!("打开链接失败: {}", e)))?;
+    Ok(())
+}
+
 // ==================== 键操作 ====================
 
 #[tauri::command]

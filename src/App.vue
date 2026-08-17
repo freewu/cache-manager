@@ -1,5 +1,9 @@
 <template>
-  <n-config-provider :theme="isDark ? darkTheme : null" :theme-overrides="themeOverrides">
+  <n-config-provider
+    :theme="isDark ? darkTheme : null"
+    :theme-overrides="themeOverrides"
+    :locale="naiveLocale"
+  >
     <n-message-provider>
       <n-dialog-provider>
         <n-layout has-sider style="height: 100vh">
@@ -41,11 +45,13 @@
 <script setup lang="ts">
 import { computed, h, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { NIcon, darkTheme, useOsTheme } from "naive-ui";
+import { NIcon, darkTheme, useOsTheme, enUS, zhCN, zhTW } from "naive-ui";
+import type { GlobalThemeOverrides } from "naive-ui";
 import { AlbumsOutline, SettingsOutline } from "@vicons/ionicons5";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useConnectionStore } from "@/store";
 import { themeState } from "@/theme";
+import { localeState, t } from "@/i18n";
 
 const DatabaseIcon = AlbumsOutline;
 const osTheme = useOsTheme();
@@ -60,7 +66,7 @@ const isDark = computed(() =>
   themeState.mode === "auto" ? osTheme.value === "dark" : themeState.mode === "dark",
 );
 
-const themeOverrides = {
+const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: "#e8590c",
     primaryColorHover: "#f76707",
@@ -68,6 +74,11 @@ const themeOverrides = {
     borderRadius: "6px",
   },
 };
+
+// naive-ui 组件内置文案随界面语言切换
+const naiveLocale = computed(() =>
+  localeState.value === "zh-TW" ? zhTW : localeState.value === "en" ? enUS : zhCN,
+);
 
 const activeMenu = computed(() => {
   const id = route.params.id as string | undefined;
@@ -81,7 +92,7 @@ const activeMenu = computed(() => {
 const menuOptions = computed<any[]>(() => {
   const base: any[] = [
     {
-      label: "连接管理",
+      label: t("app.menu.connections"),
       key: "connections",
       icon: () => h(NIcon, null, { default: () => h(AlbumsOutline) }),
     },
@@ -90,7 +101,7 @@ const menuOptions = computed<any[]>(() => {
   if (conns.length > 0) {
     base.push({
       type: "group" as const,
-      label: "已连接",
+      label: t("app.menu.connected"),
       key: "group-connected",
       children: conns.map((c) => ({
         label: c.name,
@@ -99,7 +110,7 @@ const menuOptions = computed<any[]>(() => {
     });
   }
   base.push({
-    label: "设置",
+    label: t("app.menu.settings"),
     key: "settings",
     icon: () => h(NIcon, null, { default: () => h(SettingsOutline) }),
   });

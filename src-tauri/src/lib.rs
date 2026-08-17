@@ -56,6 +56,7 @@ pub fn run() {
             commands::update_tray_menu,
             commands::get_app_settings,
             commands::set_app_settings,
+            commands::open_external,
             // 键操作
             commands::scan_keys,
             commands::key_info,
