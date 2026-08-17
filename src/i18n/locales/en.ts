@@ -54,6 +54,7 @@ export default {
   "app.menu.connected": "Connected",
   "app.menu.settings": "Settings",
   "app.updateAvailable": "New version {version} available, click to view",
+  "app.upToDate": "You are up to date",
 
   // ============ Connections ============
   "connections.title": "Connections",

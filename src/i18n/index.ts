@@ -35,6 +35,16 @@ function detectDefault(): Locale {
 /** 当前语言（响应式） */
 export const localeState = ref<Locale>(detectDefault());
 
+/** 后端同步（供托盘重建多语言菜单），失败静默 */
+let syncLocale: ((locale: string) => void) | null = null;
+// 动态引入避免与 @/api 产生循环依赖（首屏不阻塞）
+if (typeof window !== "undefined") {
+  import("@/api").then((m) => {
+    syncLocale = m.setLocale;
+    syncLocale(localeState.value);
+  });
+}
+
 export function setLocale(locale: Locale) {
   localeState.value = locale;
   try {
@@ -45,6 +55,7 @@ export function setLocale(locale: Locale) {
   if (typeof document !== "undefined") {
     document.documentElement.lang = locale;
   }
+  syncLocale?.(locale);
 }
 
 /** 翻译：支持 {param} 占位符 */

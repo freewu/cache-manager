@@ -44,6 +44,9 @@ export const getAppSettings = () => call<AppSettings>("get_app_settings");
 export const setAppSettings = (settings: AppSettings) =>
   call<void>("set_app_settings", { settings });
 
+/** 同步语言到后端（供托盘重建多语言菜单），失败静默 */
+export const setLocale = (locale: string) => call<void>("set_locale", { locale }).catch(() => {});
+
 // ============ 外部链接 ============
 /** 使用系统默认浏览器打开外部链接（项目主页 / Issue 等） */
 export const openUrl = (url: string) => call<void>("open_external", { url });

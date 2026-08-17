@@ -57,6 +57,7 @@ pub fn run() {
             commands::update_tray_menu,
             commands::get_app_settings,
             commands::set_app_settings,
+            commands::set_locale,
             commands::open_external,
             commands::pick_export_dir,
             // 键操作

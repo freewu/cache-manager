@@ -211,10 +211,28 @@ pub fn get_app_settings(app: AppHandle) -> crate::store::AppSettings {
     crate::store::load_settings(&app)
 }
 
-/// 保存应用设置
+/// 保存应用设置（保留语言字段，语言由托盘/前端 locale 同步维护）
 #[tauri::command]
-pub fn set_app_settings(app: AppHandle, settings: crate::store::AppSettings) -> AppResult<()> {
+pub fn set_app_settings(
+    app: AppHandle,
+    mut settings: crate::store::AppSettings,
+) -> AppResult<()> {
+    // 语言由 set_locale 统一维护，此处保留已有值，避免覆盖
+    let prev = crate::store::load_settings(&app);
+    if settings.locale == crate::store::AppSettings::default().locale {
+        settings.locale = prev.locale;
+    }
     crate::store::save_settings(&app, &settings)
+}
+
+/// 前端同步语言到后端（设置页切换 / 托盘切换），并重建托盘菜单
+#[tauri::command]
+pub fn set_locale(app: AppHandle, locale: String) -> AppResult<()> {
+    let mut settings = crate::store::load_settings(&app);
+    settings.locale = locale;
+    crate::store::save_settings(&app, &settings)?;
+    crate::tray::update_tray_menu(&app);
+    Ok(())
 }
 
 /// 使用系统默认浏览器打开外部链接（项目主页 / Issue 等）

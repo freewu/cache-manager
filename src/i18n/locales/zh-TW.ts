@@ -54,6 +54,7 @@ export default {
   "app.menu.connected": "已連線",
   "app.menu.settings": "設定",
   "app.updateAvailable": "發現新版本 {version}，點擊查看",
+  "app.upToDate": "目前已是最新版本",
 
   // ============ 連線管理頁 ============
   "connections.title": "連線",

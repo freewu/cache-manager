@@ -37,6 +37,9 @@
               :options="menuOptions"
               @update:value="onMenuSelect"
             />
+
+            <!-- 导入 / 导出 -->
+            <SidebarFooter :collapsed="siderCollapsed" />
           </n-layout-sider>
 
           <n-layout>
@@ -55,11 +58,17 @@ import { computed, h, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { NIcon, darkTheme, useOsTheme, enUS, zhCN, zhTW } from "naive-ui";
 import type { GlobalThemeOverrides } from "naive-ui";
-import { AlbumsOutline, SettingsOutline } from "@vicons/ionicons5";
+import {
+  AlbumsOutline,
+  Cube,
+  Grid,
+  SettingsOutline,
+} from "@vicons/ionicons5";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import SidebarFooter from "@/components/SidebarFooter.vue";
 import { useConnectionStore } from "@/store";
 import { themeState } from "@/theme";
-import { localeState, t } from "@/i18n";
+import { localeState, setLocale, t, type Locale } from "@/i18n";
 import { updateState, checkForUpdate, openUpdatePage } from "@/version";
 import logoUrl from "./assets/logo.png";
 const osTheme = useOsTheme();
@@ -67,6 +76,10 @@ const siderCollapsed = ref(false);
 const route = useRoute();
 const router = useRouter();
 const store = useConnectionStore();
+
+/** 连接类型图标与颜色（与连接管理页一致） */
+const connIcon = (mode: string) => (mode === "memcached" ? Grid : Cube);
+const iconColor = (mode: string) => (mode === "memcached" ? "#00ADD8" : "#D82C20");
 
 // ===== 主题：light / dark / auto（跟随系统）=====
 // 状态与切换逻辑在 src/theme.ts（设置页与侧边栏共用）
@@ -115,6 +128,8 @@ const menuOptions = computed<any[]>(() => {
       children: conns.map((c) => ({
         label: c.name,
         key: `explorer:${c.id}`,
+        icon: () =>
+          h(NIcon, { size: 16, color: iconColor(c.mode) }, { default: () => h(connIcon(c.mode)) }),
       })),
     });
   }
@@ -156,6 +171,10 @@ onMounted(async () => {
   unlistenTraySettings = await listen("tray:settings", () => {
     router.push("/settings");
   });
+  // 托盘切换语言
+  unlistenTrayLocale = await listen<string>("tray:set-locale", (e) => {
+    setLocale(e.payload as Locale);
+  });
 });
 
 onBeforeUnmount(() => {
@@ -163,12 +182,14 @@ onBeforeUnmount(() => {
   unlistenTrayConnect?.();
   unlistenTrayError?.();
   unlistenTraySettings?.();
+  unlistenTrayLocale?.();
 });
 
 let onContextMenu: ((e: MouseEvent) => void) | null = null;
 let unlistenTrayConnect: UnlistenFn | null = null;
 let unlistenTrayError: UnlistenFn | null = null;
 let unlistenTraySettings: UnlistenFn | null = null;
+let unlistenTrayLocale: UnlistenFn | null = null;
 </script>
 
 <style>
@@ -241,6 +262,25 @@ body,
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+/* 已连接子项：顶格展示（去掉分组缩进），并正常显示类型图标 */
+:deep(.n-menu .n-menu-item-group-title) {
+  padding-left: 12px;
+  padding-top: 8px;
+  padding-bottom: 2px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+:deep(.n-menu .n-menu-item-content) {
+  padding-left: 12px !important;
+  padding-right: 12px;
+  height: 34px;
+}
+:deep(.n-menu .n-menu-item-content .n-menu-item-content-header) {
+  padding-left: 0 !important;
+}
+:deep(.n-menu .n-menu-item-content-header) {
+  line-height: 1;
 }
 .muted {
   color: #888;

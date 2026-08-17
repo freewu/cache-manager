@@ -33,6 +33,8 @@ pub struct AppSettings {
     pub minimize_to_tray: bool,
     /// 连接导出默认目录（空则用系统下载目录）
     pub export_dir: Option<String>,
+    /// 界面语言：zh-CN / zh-TW / en（供托盘切换使用）
+    pub locale: String,
 }
 
 impl Default for AppSettings {
@@ -40,6 +42,7 @@ impl Default for AppSettings {
         Self {
             minimize_to_tray: true,
             export_dir: None,
+            locale: "zh-CN".to_string(),
         }
     }
 }

@@ -1,14 +1,59 @@
-//! 系统托盘：显示/隐藏主窗口、快速连接、退出
+//! 系统托盘：显示/隐藏主窗口、多语言切换、版本检查、快速连接、退出
 
 use tauri::{
     image::Image,
-    menu::{IconMenuItemBuilder, Menu, MenuBuilder, MenuItem},
+    menu::{CheckMenuItemBuilder, IconMenuItemBuilder, Menu, MenuBuilder, MenuItem, SubmenuBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     App, AppHandle, Emitter, Manager, Wry,
 };
 
 use crate::commands::AppState;
 use crate::model::ConnMode;
+
+/// 支持的语言
+const LOCALES: [&str; 3] = ["zh-CN", "zh-TW", "en"];
+
+fn locale_self_name(locale: &str) -> &'static str {
+    match locale {
+        "zh-TW" => "繁體中文",
+        "en" => "English",
+        _ => "简体中文",
+    }
+}
+
+struct TrayText {
+    show: &'static str,
+    settings: &'static str,
+    lang: &'static str,
+    check_update: &'static str,
+    quit: &'static str,
+}
+
+fn tray_text(locale: &str) -> TrayText {
+    match locale {
+        "en" => TrayText {
+            show: "Show Window",
+            settings: "Settings…",
+            lang: "Language",
+            check_update: "Check for Updates…",
+            quit: "Quit",
+        },
+        "zh-TW" => TrayText {
+            show: "顯示主視窗",
+            settings: "設定…",
+            lang: "語言",
+            check_update: "檢查更新…",
+            quit: "結束",
+        },
+        _ => TrayText {
+            show: "显示主窗口",
+            settings: "设置…",
+            lang: "语言",
+            check_update: "检查更新…",
+            quit: "退出",
+        },
+    }
+}
 
 /// 连接类型图标：Redis → 红 Cube，Memcached → 青 Grid
 fn conn_icon(mode: &ConnMode) -> Image<'static> {
@@ -19,28 +64,48 @@ fn conn_icon(mode: &ConnMode) -> Image<'static> {
     Image::from_bytes(bytes).expect("内嵌托盘图标无效")
 }
 
-/// 构建托盘菜单：显示主窗口 + 设置 + 已保存连接（快速连接）+ 退出
+/// 构建托盘菜单：显示主窗口 + 设置 + 语言 + 检查更新 + 快速连接 + 退出
 pub fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
-    let show = MenuItem::with_id(app, "tray-show", "显示主窗口", true, None::<&str>)?;
-    let settings = MenuItem::with_id(app, "tray-settings", "设置…", true, None::<&str>)?;
-    let mut builder = MenuBuilder::new(app).item(&show).separator().item(&settings);
+    let current_locale = crate::store::load_settings(app).locale;
+    let txt = tray_text(&current_locale);
+
+    let show = MenuItem::with_id(app, "tray-show", txt.show, true, None::<&str>)?;
+    let settings = MenuItem::with_id(app, "tray-settings", txt.settings, true, None::<&str>)?;
+
+    // 语言子菜单
+    let mut lang_items = Vec::new();
+    for loc in LOCALES {
+        let item = CheckMenuItemBuilder::with_id(format!("tray-lang:{}", loc), locale_self_name(loc))
+            .checked(loc == current_locale)
+            .build(app)?;
+        lang_items.push(item);
+    }
+    let lang_sub = SubmenuBuilder::new(app, txt.lang)
+        .items(&[&lang_items[0], &lang_items[1], &lang_items[2]])
+        .build()?;
+
+    let check_update = MenuItem::with_id(app, "tray-check-update", txt.check_update, true, None::<&str>)?;
+    let mut builder = MenuBuilder::new(app)
+        .item(&show)
+        .separator()
+        .item(&settings)
+        .separator()
+        .item(&lang_sub)
+        .item(&check_update);
 
     let connections = crate::store::load(app).unwrap_or_default();
     if !connections.is_empty() {
         builder = builder.separator();
         for cfg in &connections {
             let label = format!("{}  [{}]", cfg.name, cfg.display_url());
-            let item = IconMenuItemBuilder::with_id(
-                format!("tray-connect:{}", cfg.id),
-                label,
-            )
-            .icon(conn_icon(&cfg.mode))
-            .build(app)?;
+            let item = IconMenuItemBuilder::with_id(format!("tray-connect:{}", cfg.id), label)
+                .icon(conn_icon(&cfg.mode))
+                .build(app)?;
             builder = builder.item(&item);
         }
     }
 
-    let quit = MenuItem::with_id(app, "tray-quit", "退出", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "tray-quit", txt.quit, true, None::<&str>)?;
     builder.separator().item(&quit).build()
 }
 
@@ -53,6 +118,16 @@ pub fn show_main_window(app: &AppHandle) {
     }
 }
 
+/// 保存语言并重建托盘菜单、通知前端
+fn set_locale(app: &AppHandle, locale: &str) {
+    let mut settings = crate::store::load_settings(app);
+    settings.locale = locale.to_string();
+    if crate::store::save_settings(app, &settings).is_ok() {
+        update_tray_menu(app);
+        let _ = app.emit("tray:set-locale", locale.to_string());
+    }
+}
+
 /// 托盘菜单点击处理
 fn on_menu_event(app: &AppHandle, event: tauri::menu::MenuEvent) {
     match event.id().as_ref() {
@@ -60,6 +135,16 @@ fn on_menu_event(app: &AppHandle, event: tauri::menu::MenuEvent) {
         "tray-settings" => {
             show_main_window(app);
             let _ = app.emit("tray:settings", ());
+        }
+        "tray-check-update" => {
+            show_main_window(app);
+            let _ = app.emit("tray:check-update", ());
+        }
+        id if id.starts_with("tray-lang:") => {
+            let loc = id.trim_start_matches("tray-lang:").to_string();
+            if LOCALES.contains(&loc.as_str()) {
+                set_locale(app, &loc);
+            }
         }
         "tray-quit" => app.exit(0),
         id if id.starts_with("tray-connect:") => {

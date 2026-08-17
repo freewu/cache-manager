@@ -1,22 +1,13 @@
 <template>
-  <div class="split">
+  <div class="split" ref="splitWrap">
     <!-- ============ 左栏：连接列表 ============ -->
-    <div class="left-pane">
+    <div class="left-pane" :style="{ width: panelWidth + 'px' }">
       <div class="left-header">
         <div class="left-title-wrap">
           <img class="app-logo" :src="appLogo" alt="Cache Manager" />
           <span class="left-title">{{ t("connections.title") }}</span>
         </div>
         <div class="left-actions">
-          <n-button size="small" secondary @click="doExport" :title="t('connections.exportTitle')">
-            <template #icon><n-icon><CloudDownloadOutline /></n-icon></template>
-            {{ t("common.export") }}
-          </n-button>
-          <n-button size="small" secondary @click="triggerImport" :title="t('connections.importTitle')">
-            <template #icon><n-icon><CloudUploadOutline /></n-icon></template>
-            {{ t("common.import") }}
-          </n-button>
-          <input ref="importInput" type="file" accept=".json,application/json" style="display: none" @change="onImportFile" />
           <n-button size="small" type="primary" @click="openCreate">
             <template #icon><n-icon><AddOutline /></n-icon></template>
             {{ t("common.create") }}
@@ -80,6 +71,9 @@
         </n-space>
       </div>
     </div>
+
+    <!-- 可拖动分隔条：连接信息与详情间动态调宽 -->
+    <div class="splitter" ref="splitRef" title="拖动调整宽度" @mousedown="startDrag"></div>
 
     <!-- ============ 右栏：详情面板 ============ -->
     <div class="right-pane">
@@ -212,9 +206,8 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { NIcon, useMessage } from "naive-ui";
-import { AddOutline, CloudDownloadOutline, CloudUploadOutline, Cube, Grid, SearchOutline } from "@vicons/ionicons5";
+import { AddOutline, Cube, Grid, SearchOutline } from "@vicons/ionicons5";
 import ConnectionForm from "@/components/ConnectionForm.vue";
-import * as api from "@/api";
 import type { ConnConfig } from "@/types";
 import appLogo from "@/assets/logo.png";
 import { useConnectionStore } from "@/store";
@@ -224,6 +217,36 @@ const store = useConnectionStore();
 const router = useRouter();
 const message = useMessage();
 
+// ===== 左右分隔：连接信息与详情间动态调宽 =====
+const PANEL_MIN = 240;
+const PANEL_MAX_RATIO = 0.55;
+const PANEL_KEY = "cache-manager:connections-panel-width";
+const splitWrap = ref<HTMLElement | null>(null);
+const panelWidth = ref<number>(
+  Math.max(PANEL_MIN, Number(localStorage.getItem(PANEL_KEY)) || 320),
+);
+
+function startDrag(e: MouseEvent) {
+  if (e.button !== 0) return;
+  const onMove = (ev: MouseEvent) => {
+    if (!splitWrap.value) return;
+    const rect = splitWrap.value.getBoundingClientRect();
+    const max = Math.round(rect.width * PANEL_MAX_RATIO);
+    const w = Math.round(ev.clientX - rect.left);
+    panelWidth.value = Math.min(max, Math.max(PANEL_MIN, w));
+  };
+  const onUp = () => {
+    localStorage.setItem(PANEL_KEY, String(panelWidth.value));
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  };
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+}
 const formVisible = ref(false);
 const editing = ref<ConnConfig | null>(null);
 const connectingId = ref("");
@@ -351,50 +374,6 @@ function openCreate() {
   formVisible.value = true;
 }
 
-// ============ 导入 / 导出 ============
-const importInput = ref<HTMLInputElement | null>(null);
-
-/** 导出连接列表到 JSON 文件 */
-async function doExport() {
-  try {
-    const path = await api.exportConnections();
-    message.success(t("connections.exported", { n: store.saved.length, path }));
-  } catch (e) {
-    message.error(String(e));
-  }
-}
-
-function triggerImport() {
-  importInput.value?.click();
-}
-
-/** 选择导入文件后读取并合并 */
-async function onImportFile(ev: Event) {
-  const input = ev.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = "";
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const res = await api.importConnections(text);
-    if (res.imported > 0) {
-      message.success(
-        t("connections.imported", { n: res.imported }) +
-          (res.duplicated > 0 ? t("connections.importedDuplicated", { n: res.duplicated }) : ""),
-      );
-      // 重新加载连接列表（store.refresh 只刷新状态，需 loadSaved 重新拉取配置）
-      await store.loadSaved();
-      await store.refresh();
-    } else if (res.duplicated > 0) {
-      message.warning(t("connections.allDuplicated", { n: res.duplicated }));
-    } else {
-      message.warning(t("connections.noImportable"));
-    }
-  } catch (e) {
-    message.error(String(e));
-  }
-}
-
 function openEdit(cfg: ConnConfig) {
   editing.value = cfg;
   formVisible.value = true;
@@ -457,12 +436,26 @@ function onSaved() {
   display: flex;
   height: 100%;
   min-height: calc(100vh);
+  overflow: hidden;
+}
+
+/* 可拖动分隔条 */
+.splitter {
+  flex: none;
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  user-select: none;
+}
+.splitter:hover {
+  background: rgba(125, 197, 235, 0.14);
 }
 
 /* 左栏 */
 .left-pane {
   width: 320px;
-  min-width: 260px;
+  min-width: 240px;
+  max-width: 55%;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--n-border-color, #eee);
