@@ -225,7 +225,7 @@ export default {
   "settings.exportDirDesc": "导出连接列表时保存到的文件夹；留空则使用系统下载目录",
   "settings.exportDirPlaceholder": "例如 D:\\backup\\connections（留空使用默认下载目录）",
   "settings.reset": "重置",
-  "settings.saveExportDir": "保存导出目录",
+  "settings.browse": "选择目录",
   "settings.exportDirSaved": "导出目录已设置为 {dir}",
   "settings.exportDirReset": "已恢复默认下载目录",
   "settings.aboutDesc": "Redis / Memcached 桌面管理工具 · 支持单机 / 主从 / Sentinel / Cluster",

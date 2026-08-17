@@ -48,6 +48,9 @@ export const setAppSettings = (settings: AppSettings) =>
 /** 使用系统默认浏览器打开外部链接（项目主页 / Issue 等） */
 export const openUrl = (url: string) => call<void>("open_external", { url });
 
+/** 弹出系统目录选择框，返回选中目录（取消返回 null） */
+export const pickExportDir = () => call<string | null>("pick_export_dir");
+
 // ============ 键操作 ============
 export const scanKeys = (
   connId: string,

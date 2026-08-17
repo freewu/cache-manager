@@ -67,14 +67,23 @@
           <div class="setting-name">{{ t("settings.exportDir") }}</div>
           <div class="setting-desc">{{ t("settings.exportDirDesc") }}</div>
         </div>
-        <n-input
-          v-model:value="exportDirDraft"
-          :placeholder="t('settings.exportDirPlaceholder')"
-          clearable
-        />
-        <div class="setting-actions">
-          <n-button size="small" secondary @click="exportDirDraft = settings.exportDir || ''">{{ t("settings.reset") }}</n-button>
-          <n-button size="small" type="primary" :loading="savingExportDir" @click="saveExportDir">{{ t("settings.saveExportDir") }}</n-button>
+        <div class="dir-picker">
+          <n-input
+            v-model:value="exportDirDraft"
+            :placeholder="t('settings.exportDirPlaceholder')"
+            readonly
+            @blur="saveExportDirOnBlur"
+          >
+            <template #suffix>
+              <span v-if="exportDirDraft" class="muted dir-clear" @click.stop="clearExportDir">
+                {{ t("settings.reset") }}
+              </span>
+            </template>
+          </n-input>
+          <n-button size="small" type="primary" :loading="pickingDir" @click="pickDirectory">
+            <template #icon><n-icon><FolderOpenOutline /></n-icon></template>
+            {{ t("settings.browse") }}
+          </n-button>
         </div>
       </div>
     </n-card>
@@ -119,8 +128,13 @@
 import { onMounted, ref } from "vue";
 import { useMessage, useOsTheme } from "naive-ui";
 import { getVersion } from "@tauri-apps/api/app";
-import { BugOutline, LogoGithub } from "@vicons/ionicons5";
-import { getAppSettings, setAppSettings, openUrl as openExternal } from "@/api";
+import { BugOutline, FolderOpenOutline, LogoGithub } from "@vicons/ionicons5";
+import {
+  getAppSettings,
+  setAppSettings,
+  openUrl as openExternal,
+  pickExportDir,
+} from "@/api";
 import { setTheme, THEME_ORDER, themeState } from "@/theme";
 import { LOCALES, LOCALE_LABELS, localeState, setLocale, t } from "@/i18n";
 import appLogo from "@/assets/logo.png";
@@ -133,12 +147,61 @@ const osTheme = useOsTheme();
 const isDark = ref(osTheme.value === "dark");
 const message = useMessage();
 
-const version = ref("0.1.1");
+const version = ref("0.1.2");
 const settings = ref({ minimizeToTray: true, exportDir: null as string | null });
 const settingsLoading = ref(false);
 
 const exportDirDraft = ref("");
-const savingExportDir = ref(false);
+const pickingDir = ref(false);
+
+/** 保存当前导出目录（空则清空） */
+async function persistExportDir(dir: string) {
+  const val = dir.trim();
+  settings.value.exportDir = val || null;
+  await setAppSettings({
+    minimizeToTray: settings.value.minimizeToTray,
+    exportDir: settings.value.exportDir,
+  });
+  return val;
+}
+
+/** 弹出系统目录选择框，选中即保存 */
+async function pickDirectory() {
+  pickingDir.value = true;
+  try {
+    const dir = await pickExportDir();
+    if (dir) {
+      exportDirDraft.value = dir;
+      await persistExportDir(dir);
+      message.success(t("settings.exportDirSaved", { dir }));
+    }
+  } catch (e) {
+    message.error(String(e));
+  } finally {
+    pickingDir.value = false;
+  }
+}
+
+/** 失焦即保存 */
+async function saveExportDirOnBlur() {
+  try {
+    const val = await persistExportDir(exportDirDraft.value);
+    message.success(val ? t("settings.exportDirSaved", { dir: val }) : t("settings.exportDirReset"));
+  } catch (e) {
+    message.error(String(e));
+  }
+}
+
+/** 清除导出目录 */
+async function clearExportDir() {
+  exportDirDraft.value = "";
+  try {
+    await persistExportDir("");
+    message.success(t("settings.exportDirReset"));
+  } catch (e) {
+    message.error(String(e));
+  }
+}
 
 const locale = localeState;
 
@@ -163,20 +226,6 @@ async function setMinimizeToTray(v: boolean) {
     await setAppSettings({ minimizeToTray: v, exportDir: settings.value.exportDir });
   } finally {
     settingsLoading.value = false;
-  }
-}
-
-async function saveExportDir() {
-  savingExportDir.value = true;
-  try {
-    const dir = exportDirDraft.value.trim();
-    settings.value.exportDir = dir || null;
-    await setAppSettings({ minimizeToTray: settings.value.minimizeToTray, exportDir: settings.value.exportDir });
-    message.success(dir ? t("settings.exportDirSaved", { dir }) : t("settings.exportDirReset"));
-  } catch (e) {
-    message.error(String(e));
-  } finally {
-    savingExportDir.value = false;
   }
 }
 
@@ -270,10 +319,20 @@ onMounted(async () => {
   align-items: stretch;
   gap: 12px;
 }
-.setting-actions {
+.dir-picker {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
   gap: 8px;
+}
+.dir-picker .n-input {
+  flex: 1;
+}
+.dir-clear {
+  cursor: pointer;
+  padding: 0 4px;
+}
+.dir-clear:hover {
+  color: #e5484d;
 }
 .project-links {
   display: flex;

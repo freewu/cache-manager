@@ -225,7 +225,7 @@ export default {
   "settings.exportDirDesc": "Folder used when exporting connections; leave empty to use the system download folder",
   "settings.exportDirPlaceholder": "e.g. D:\\backup\\connections (empty = default download folder)",
   "settings.reset": "Reset",
-  "settings.saveExportDir": "Save Export Directory",
+  "settings.browse": "Browse",
   "settings.exportDirSaved": "Export directory set to {dir}",
   "settings.exportDirReset": "Restored default download directory",
   "settings.aboutDesc": "Redis / Memcached desktop manager · Supports Single / Master-Slave / Sentinel / Cluster",

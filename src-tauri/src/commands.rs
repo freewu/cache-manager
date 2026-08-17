@@ -227,6 +227,14 @@ pub fn open_external(app: AppHandle, url: String) -> AppResult<()> {
     Ok(())
 }
 
+/// 弹出系统目录选择框，返回选中的文件夹路径（取消返回 None）
+#[tauri::command]
+pub fn pick_export_dir(app: AppHandle) -> AppResult<Option<String>> {
+    use tauri_plugin_dialog::DialogExt;
+    let picked = app.dialog().file().blocking_pick_folder();
+    Ok(picked.and_then(|p| p.into_path().ok()).map(|p| p.display().to_string()))
+}
+
 // ==================== 键操作 ====================
 
 #[tauri::command]
