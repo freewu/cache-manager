@@ -51,6 +51,8 @@ pub fn run() {
             commands::switch_database,
             commands::load_saved_connections,
             commands::save_connections,
+            commands::export_connections,
+            commands::import_connections,
             commands::update_tray_menu,
             commands::get_app_settings,
             commands::set_app_settings,

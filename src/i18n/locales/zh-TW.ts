@@ -2,6 +2,8 @@
 export default {
   // ============ 通用 ============
   "common.create": "新增",
+  "common.export": "匯出",
+  "common.import": "匯入",
   "common.edit": "編輯",
   "common.delete": "刪除",
   "common.cancel": "取消",
@@ -56,6 +58,8 @@ export default {
 
   // ============ 連線管理頁 ============
   "connections.title": "連線",
+  "connections.exportTitle": "匯出連線清單到 JSON",
+  "connections.importTitle": "從 JSON 匯入連線清單",
   "connections.searchPlaceholder": "搜尋名稱 / 位址 / 連接埠",
   "connections.dblclickHint": "雙擊連線",
   "connections.empty": "沒有連線設定",
@@ -78,6 +82,11 @@ export default {
   "connections.nodeList": "節點清單",
   "connections.liveNodes": "即時節點狀態",
   "connections.recentErrors": "最近錯誤",
+  "connections.exported": "已匯出 {n} 個連線到\n{path}",
+  "connections.imported": "匯入 {n} 個連線",
+  "connections.importedDuplicated": "，跳過 {n} 個重複（host:port 一致）",
+  "connections.allDuplicated": "全部 {n} 個連線已存在（host:port 一致），未匯入",
+  "connections.noImportable": "檔案中沒有可匯入的連線",
   "connections.testOk": "連線測試通過",
   "connections.disconnectedAll": "已斷開全部連線",
   "connections.deleted": "已刪除",

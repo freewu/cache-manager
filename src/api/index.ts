@@ -29,6 +29,9 @@ export const switchDatabase = (connId: string, database: number) =>
 export const loadSavedConnections = () => call<ConnConfig[]>("load_saved_connections");
 export const saveConnections = (connections: ConnConfig[]) =>
   call<void>("save_connections", { connections });
+export const exportConnections = () => call<string>("export_connections");
+export const importConnections = (json: string) =>
+  call<{ imported: number; duplicated: number }>("import_connections", { json });
 export const updateTrayMenu = () => call<void>("update_tray_menu");
 
 // ============ 应用设置 ============

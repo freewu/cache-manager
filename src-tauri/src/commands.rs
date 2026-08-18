@@ -1,11 +1,12 @@
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager, State};
 use tauri::ipc::Channel;
 
 use crate::error::AppResult;
 use crate::memcachedx::MemcachedManager;
-use crate::model::{ConnConfig, ConnStatusInfo, NodeStatus};
+use crate::model::{ConnConfig, ConnStatusInfo, ImportResult, NodeStatus};
 use crate::redisx::console::CommandResult;
 use crate::redisx::keys::{
     KeyInfo, ScanPage, ValueView,
@@ -116,6 +117,87 @@ pub fn save_connections(app: AppHandle, connections: Vec<ConnConfig>) -> AppResu
     Ok(())
 }
 
+/// 导出连接列表到 JSON 文件，返回文件路径
+/// 目录优先级：设置里的默认导出目录 → 系统下载目录 → 应用配置目录
+#[tauri::command]
+pub fn export_connections(app: AppHandle) -> AppResult<String> {
+    let configs = crate::store::load(&app)?;
+    let json = serde_json::to_string_pretty(&configs)?;
+    let settings = crate::store::load_settings(&app);
+    // 1) 用户配置的默认导出目录（存在或可创建）
+    let mut dir: Option<std::path::PathBuf> = settings
+        .export_dir
+        .filter(|d| !d.trim().is_empty())
+        .map(std::path::PathBuf::from);
+    // 2) 系统下载目录
+    if dir.is_none() {
+        dir = std::env::var("USERPROFILE")
+            .ok()
+            .map(|u| std::path::PathBuf::from(u).join("Downloads"))
+            .filter(|p| p.is_dir());
+    }
+    // 3) 应用配置目录
+    let dir = match dir {
+        Some(d) => d,
+        None => {
+            let cfg = app
+                .path()
+                .app_config_dir()
+                .map_err(|e| crate::error::AppError::new(format!("无法获取配置目录: {}", e)))?;
+            cfg
+        }
+    };
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let path = dir.join(format!("cache-manager-connections-{}.json", secs));
+    std::fs::create_dir_all(&dir)?;
+    std::fs::write(&path, json)?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
+/// 导入连接列表（JSON）。host:port 与现有连接一致的跳过，返回导入/跳过数量
+#[tauri::command]
+pub fn import_connections(app: AppHandle, json: String) -> AppResult<ImportResult> {
+    let incoming: Vec<ConnConfig> = serde_json::from_str(&json)
+        .map_err(|e| crate::error::AppError::new(format!("导入文件格式错误: {}", e)))?;
+    let mut existing = crate::store::load(&app)?;
+    let mut imported = 0usize;
+    let mut duplicated = 0usize;
+    let mut used_ids: std::collections::HashSet<String> =
+        existing.iter().map(|c| c.id.clone()).collect();
+    for mut cfg in incoming {
+        // host:port 重复（忽略大小写）→ 跳过
+        let dup = existing.iter().any(|c| {
+            c.host.eq_ignore_ascii_case(&cfg.host) && c.port == cfg.port
+        });
+        if dup {
+            duplicated += 1;
+            continue;
+        }
+        // id 冲突时生成新 id
+        if cfg.id.is_empty() || used_ids.contains(&cfg.id) {
+            let secs = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|d| d.as_millis())
+                .unwrap_or(0);
+            cfg.id = format!("imp-{}-{}", secs, imported);
+        }
+        used_ids.insert(cfg.id.clone());
+        existing.push(cfg);
+        imported += 1;
+    }
+    if imported > 0 {
+        crate::store::save(&app, &existing)?;
+        crate::tray::update_tray_menu(&app);
+    }
+    Ok(ImportResult {
+        imported,
+        duplicated,
+    })
+}
+
 /// 重建托盘快速连接菜单（保存/删除连接后由前端调用）
 #[tauri::command]
 pub fn update_tray_menu(app: AppHandle) -> AppResult<()> {
@@ -139,6 +221,10 @@ pub fn set_app_settings(
     let prev = crate::store::load_settings(&app);
     if settings.locale == crate::store::AppSettings::default().locale {
         settings.locale = prev.locale;
+    }
+    // 导出目录当前无设置入口，保留旧值避免覆盖
+    if settings.export_dir.is_none() {
+        settings.export_dir = prev.export_dir;
     }
     crate::store::save_settings(&app, &settings)
 }

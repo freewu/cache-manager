@@ -1,7 +1,7 @@
 <template>
   <div class="split" ref="splitWrap">
     <!-- ============ 左栏：连接列表 ============ -->
-    <div class="left-pane" :style="{ width: panelWidth + 'px' }">
+    <div class="left-pane" :style="{ width: panelWidth + 'px' }" @contextmenu.prevent="openListMenu">
       <div class="left-header">
         <div class="left-title-wrap">
           <img class="app-logo" :src="appLogo" alt="Cache Manager" />
@@ -72,6 +72,27 @@
       </div>
 
     </div>
+
+    <!-- 隐藏的导入文件选择（由右键菜单触发） -->
+    <input
+      ref="importInput"
+      type="file"
+      accept=".json,application/json"
+      style="display: none"
+      @change="onImportFile"
+    />
+
+    <!-- 连接列表右键菜单：导入 / 导出（隐蔽入口） -->
+    <n-dropdown
+      trigger="manual"
+      placement="bottom-start"
+      :show="listMenuVisible"
+      :options="listMenuOptions"
+      :x="listMenuX"
+      :y="listMenuY"
+      @select="onListMenuSelect"
+      @clickoutside="listMenuVisible = false"
+    />
 
     <!-- 可拖动分隔条：连接信息与详情间动态调宽 -->
     <div class="splitter" ref="splitRef" title="拖动调整宽度" @mousedown="startDrag"></div>
@@ -204,11 +225,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, h, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { NIcon, useMessage } from "naive-ui";
-import { AddOutline, Cube, Grid, SearchOutline } from "@vicons/ionicons5";
+import { AddOutline, CloudUploadOutline, Cube, DownloadOutline, Grid, SearchOutline } from "@vicons/ionicons5";
 import ConnectionForm from "@/components/ConnectionForm.vue";
+import * as api from "@/api";
 import type { ConnConfig } from "@/types";
 import appLogo from "@/assets/logo.png";
 import { useConnectionStore } from "@/store";
@@ -373,6 +395,81 @@ function select(id: string) {
 function openCreate() {
   editing.value = null;
   formVisible.value = true;
+}
+
+// ===== 导入 / 导出（连接列表右键菜单，隐藏入口）=====
+const importInput = ref<HTMLInputElement | null>(null);
+const listMenuVisible = ref(false);
+const listMenuX = ref(0);
+const listMenuY = ref(0);
+
+const listMenuOptions = computed<any[]>(() => [
+  {
+    label: t("connections.exportTitle"),
+    key: "export",
+    icon: () => h(NIcon, null, { default: () => h(DownloadOutline) }),
+  },
+  {
+    label: t("connections.importTitle"),
+    key: "import",
+    icon: () => h(NIcon, null, { default: () => h(CloudUploadOutline) }),
+  },
+]);
+
+/** 右键弹出导入/导出菜单 */
+function openListMenu(e: MouseEvent) {
+  listMenuX.value = e.clientX;
+  listMenuY.value = e.clientY;
+  listMenuVisible.value = true;
+}
+
+function onListMenuSelect(key: string) {
+  listMenuVisible.value = false;
+  if (key === "export") doExport();
+  else if (key === "import") triggerImport();
+}
+
+/** 导出连接列表到 JSON 文件 */
+async function doExport() {
+  try {
+    const path = await api.exportConnections();
+    message.success(t("connections.exported", { n: store.saved.length, path }));
+  } catch (e) {
+    message.error(String(e));
+  }
+}
+
+function triggerImport() {
+  importInput.value?.click();
+}
+
+/** 选择导入文件后读取并合并 */
+async function onImportFile(ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const res = await api.importConnections(text);
+    if (res.imported > 0) {
+      message.success(
+        t("connections.imported", { n: res.imported }) +
+          (res.duplicated > 0
+            ? t("connections.importedDuplicated", { n: res.duplicated })
+            : ""),
+      );
+      // 重新加载连接列表（store.refresh 只刷新状态，需 loadSaved 重新拉取配置）
+      await store.loadSaved();
+      await store.refresh();
+    } else if (res.duplicated > 0) {
+      message.warning(t("connections.allDuplicated", { n: res.duplicated }));
+    } else {
+      message.warning(t("connections.noImportable"));
+    }
+  } catch (e) {
+    message.error(String(e));
+  }
 }
 
 function openEdit(cfg: ConnConfig) {

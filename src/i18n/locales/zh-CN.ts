@@ -2,6 +2,8 @@
 export default {
   // ============ 通用 ============
   "common.create": "新建",
+  "common.export": "导出",
+  "common.import": "导入",
   "common.edit": "编辑",
   "common.delete": "删除",
   "common.cancel": "取消",
@@ -56,6 +58,8 @@ export default {
 
   // ============ 连接管理页 ============
   "connections.title": "连接",
+  "connections.exportTitle": "导出连接列表到 JSON",
+  "connections.importTitle": "从 JSON 导入连接列表",
   "connections.searchPlaceholder": "搜索名称 / 地址 / 端口",
   "connections.dblclickHint": "双击连接",
   "connections.empty": "没有连接配置",
@@ -78,6 +82,11 @@ export default {
   "connections.nodeList": "节点列表",
   "connections.liveNodes": "实时节点状态",
   "connections.recentErrors": "最近错误",
+  "connections.exported": "已导出 {n} 个连接到\n{path}",
+  "connections.imported": "导入 {n} 个连接",
+  "connections.importedDuplicated": "，跳过 {n} 个重复（host:port 一致）",
+  "connections.allDuplicated": "全部 {n} 个连接已存在（host:port 一致），未导入",
+  "connections.noImportable": "文件中没有可导入的连接",
   "connections.testOk": "连接测试通过",
   "connections.disconnectedAll": "已断开全部连接",
   "connections.deleted": "已删除",

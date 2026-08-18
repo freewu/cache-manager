@@ -2,6 +2,8 @@
 export default {
   // ============ Common ============
   "common.create": "New",
+  "common.export": "Export",
+  "common.import": "Import",
   "common.edit": "Edit",
   "common.delete": "Delete",
   "common.cancel": "Cancel",
@@ -56,6 +58,8 @@ export default {
 
   // ============ Connections ============
   "connections.title": "Connections",
+  "connections.exportTitle": "Export connections to JSON",
+  "connections.importTitle": "Import connections from JSON",
   "connections.searchPlaceholder": "Search name / host / port",
   "connections.dblclickHint": "Double-click to connect",
   "connections.empty": "No saved connections",
@@ -78,6 +82,11 @@ export default {
   "connections.nodeList": "Nodes",
   "connections.liveNodes": "Live Node Status",
   "connections.recentErrors": "Recent Errors",
+  "connections.exported": "Exported {n} connections to\n{path}",
+  "connections.imported": "Imported {n} connections",
+  "connections.importedDuplicated": ", skipped {n} duplicates (same host:port)",
+  "connections.allDuplicated": "All {n} connections already exist (same host:port), nothing imported",
+  "connections.noImportable": "No importable connections found in the file",
   "connections.testOk": "Connection test passed",
   "connections.disconnectedAll": "All connections disconnected",
   "connections.deleted": "Deleted",
