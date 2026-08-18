@@ -1,8 +1,6 @@
 // English
 export default {
   // ============ Common ============
-  "common.export": "Export",
-  "common.import": "Import",
   "common.create": "New",
   "common.edit": "Edit",
   "common.delete": "Delete",
@@ -58,8 +56,6 @@ export default {
 
   // ============ Connections ============
   "connections.title": "Connections",
-  "connections.exportTitle": "Export connections to JSON",
-  "connections.importTitle": "Import connections from JSON",
   "connections.searchPlaceholder": "Search name / host / port",
   "connections.dblclickHint": "Double-click to connect",
   "connections.empty": "No saved connections",
@@ -82,11 +78,6 @@ export default {
   "connections.nodeList": "Nodes",
   "connections.liveNodes": "Live Node Status",
   "connections.recentErrors": "Recent Errors",
-  "connections.exported": "Exported {n} connections to\n{path}",
-  "connections.imported": "Imported {n} connections",
-  "connections.importedDuplicated": ", skipped {n} duplicates (same host:port)",
-  "connections.allDuplicated": "All {n} connections already exist (same host:port), nothing imported",
-  "connections.noImportable": "No importable connections found in the file",
   "connections.testOk": "Connection test passed",
   "connections.disconnectedAll": "All connections disconnected",
   "connections.deleted": "Deleted",
@@ -208,7 +199,6 @@ export default {
   "settings.subtitle": "Application preferences",
   "settings.theme": "Theme",
   "settings.window": "Window Behavior",
-  "settings.export": "Connection Export",
   "settings.about": "About",
   "settings.language": "Language",
   "settings.languageDesc": "Interface language (system tray menu updates after restart)",
@@ -222,13 +212,6 @@ export default {
   "settings.unified": " — all windows use {name} appearance",
   "settings.minimizeToTray": "Minimize to system tray when closing window",
   "settings.minimizeToTrayDesc": "The app stays in the tray after closing the main window; restore or quit from the tray menu",
-  "settings.exportDir": "Default export directory",
-  "settings.exportDirDesc": "Folder used when exporting connections; leave empty to use the system download folder",
-  "settings.exportDirPlaceholder": "e.g. D:\\backup\\connections (empty = default download folder)",
-  "settings.reset": "Reset",
-  "settings.browse": "Browse",
-  "settings.exportDirSaved": "Export directory set to {dir}",
-  "settings.exportDirReset": "Restored default download directory",
   "settings.aboutDesc": "Redis / Memcached desktop manager · Supports Single / Master-Slave / Sentinel / Cluster",
   "settings.project": "Project",
   "settings.projectDesc": "Cache Manager is an open-source project. Star it, report issues, or contribute!",

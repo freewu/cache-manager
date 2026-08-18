@@ -29,16 +29,11 @@ export const switchDatabase = (connId: string, database: number) =>
 export const loadSavedConnections = () => call<ConnConfig[]>("load_saved_connections");
 export const saveConnections = (connections: ConnConfig[]) =>
   call<void>("save_connections", { connections });
-export const exportConnections = () => call<string>("export_connections");
-export const importConnections = (json: string) =>
-  call<{ imported: number; duplicated: number }>("import_connections", { json });
 export const updateTrayMenu = () => call<void>("update_tray_menu");
 
 // ============ 应用设置 ============
 export interface AppSettings {
   minimizeToTray: boolean;
-  /** 连接导出默认目录（空则用系统下载目录） */
-  exportDir: string | null;
 }
 export const getAppSettings = () => call<AppSettings>("get_app_settings");
 export const setAppSettings = (settings: AppSettings) =>
@@ -50,9 +45,6 @@ export const setLocale = (locale: string) => call<void>("set_locale", { locale }
 // ============ 外部链接 ============
 /** 使用系统默认浏览器打开外部链接（项目主页 / Issue 等） */
 export const openUrl = (url: string) => call<void>("open_external", { url });
-
-/** 弹出系统目录选择框，返回选中目录（取消返回 null） */
-export const pickExportDir = () => call<string | null>("pick_export_dir");
 
 // ============ 键操作 ============
 export const scanKeys = (

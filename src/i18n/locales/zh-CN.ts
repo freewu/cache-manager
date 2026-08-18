@@ -1,8 +1,6 @@
 // 简体中文
 export default {
   // ============ 通用 ============
-  "common.export": "导出",
-  "common.import": "导入",
   "common.create": "新建",
   "common.edit": "编辑",
   "common.delete": "删除",
@@ -58,8 +56,6 @@ export default {
 
   // ============ 连接管理页 ============
   "connections.title": "连接",
-  "connections.exportTitle": "导出连接列表到 JSON",
-  "connections.importTitle": "从 JSON 导入连接列表",
   "connections.searchPlaceholder": "搜索名称 / 地址 / 端口",
   "connections.dblclickHint": "双击连接",
   "connections.empty": "没有连接配置",
@@ -82,11 +78,6 @@ export default {
   "connections.nodeList": "节点列表",
   "connections.liveNodes": "实时节点状态",
   "connections.recentErrors": "最近错误",
-  "connections.exported": "已导出 {n} 个连接到\n{path}",
-  "connections.imported": "导入 {n} 个连接",
-  "connections.importedDuplicated": "，跳过 {n} 个重复（host:port 一致）",
-  "connections.allDuplicated": "全部 {n} 个连接已存在（host:port 一致），未导入",
-  "connections.noImportable": "文件中没有可导入的连接",
   "connections.testOk": "连接测试通过",
   "connections.disconnectedAll": "已断开全部连接",
   "connections.deleted": "已删除",
@@ -208,7 +199,6 @@ export default {
   "settings.subtitle": "应用程序偏好设置",
   "settings.theme": "主题外观",
   "settings.window": "窗口行为",
-  "settings.export": "连接导出",
   "settings.about": "关于",
   "settings.language": "语言",
   "settings.languageDesc": "界面显示语言（重启后对系统菜单生效）",
@@ -222,13 +212,6 @@ export default {
   "settings.unified": "—— 所有窗口统一使用{name}外观",
   "settings.minimizeToTray": "关闭窗口时最小化到系统托盘",
   "settings.minimizeToTrayDesc": "关闭主窗口后程序驻留托盘，可从托盘菜单恢复或退出",
-  "settings.exportDir": "默认导出目录",
-  "settings.exportDirDesc": "导出连接列表时保存到的文件夹；留空则使用系统下载目录",
-  "settings.exportDirPlaceholder": "例如 D:\\backup\\connections（留空使用默认下载目录）",
-  "settings.reset": "重置",
-  "settings.browse": "选择目录",
-  "settings.exportDirSaved": "导出目录已设置为 {dir}",
-  "settings.exportDirReset": "已恢复默认下载目录",
   "settings.aboutDesc": "Redis / Memcached 桌面管理工具 · 支持单机 / 主从 / Sentinel / Cluster",
   "settings.project": "项目地址",
   "settings.projectDesc": "Cache Manager 开源项目，欢迎 Star、反馈问题或参与贡献",

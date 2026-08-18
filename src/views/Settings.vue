@@ -60,34 +60,6 @@
       </div>
     </n-card>
 
-    <!-- ============ 连接导出 ============ -->
-    <n-card :title="t('settings.export')" size="small" class="settings-card">
-      <div class="setting-row column">
-        <div class="setting-info">
-          <div class="setting-name">{{ t("settings.exportDir") }}</div>
-          <div class="setting-desc">{{ t("settings.exportDirDesc") }}</div>
-        </div>
-        <div class="dir-picker">
-          <n-input
-            v-model:value="exportDirDraft"
-            :placeholder="t('settings.exportDirPlaceholder')"
-            readonly
-            @blur="saveExportDirOnBlur"
-          >
-            <template #suffix>
-              <span v-if="exportDirDraft" class="muted dir-clear" @click.stop="clearExportDir">
-                {{ t("settings.reset") }}
-              </span>
-            </template>
-          </n-input>
-          <n-button size="small" type="primary" :loading="pickingDir" @click="pickDirectory">
-            <template #icon><n-icon><FolderOpenOutline /></n-icon></template>
-            {{ t("settings.browse") }}
-          </n-button>
-        </div>
-      </div>
-    </n-card>
-
     <!-- ============ 项目地址 ============ -->
     <n-card :title="t('settings.project')" size="small" class="settings-card">
       <div class="setting-row column">
@@ -128,13 +100,8 @@
 import { onMounted, ref } from "vue";
 import { useMessage, useOsTheme } from "naive-ui";
 import { getVersion } from "@tauri-apps/api/app";
-import { BugOutline, FolderOpenOutline, LogoGithub } from "@vicons/ionicons5";
-import {
-  getAppSettings,
-  setAppSettings,
-  openUrl as openExternal,
-  pickExportDir,
-} from "@/api";
+import { BugOutline, LogoGithub } from "@vicons/ionicons5";
+import { getAppSettings, setAppSettings, openUrl as openExternal } from "@/api";
 import { setTheme, THEME_ORDER, themeState } from "@/theme";
 import { LOCALES, LOCALE_LABELS, localeState, setLocale, t } from "@/i18n";
 import appLogo from "@/assets/logo.png";
@@ -148,60 +115,8 @@ const isDark = ref(osTheme.value === "dark");
 const message = useMessage();
 
 const version = ref("0.1.2");
-const settings = ref({ minimizeToTray: true, exportDir: null as string | null });
+const settings = ref({ minimizeToTray: true });
 const settingsLoading = ref(false);
-
-const exportDirDraft = ref("");
-const pickingDir = ref(false);
-
-/** 保存当前导出目录（空则清空） */
-async function persistExportDir(dir: string) {
-  const val = dir.trim();
-  settings.value.exportDir = val || null;
-  await setAppSettings({
-    minimizeToTray: settings.value.minimizeToTray,
-    exportDir: settings.value.exportDir,
-  });
-  return val;
-}
-
-/** 弹出系统目录选择框，选中即保存 */
-async function pickDirectory() {
-  pickingDir.value = true;
-  try {
-    const dir = await pickExportDir();
-    if (dir) {
-      exportDirDraft.value = dir;
-      await persistExportDir(dir);
-      message.success(t("settings.exportDirSaved", { dir }));
-    }
-  } catch (e) {
-    message.error(String(e));
-  } finally {
-    pickingDir.value = false;
-  }
-}
-
-/** 失焦即保存 */
-async function saveExportDirOnBlur() {
-  try {
-    const val = await persistExportDir(exportDirDraft.value);
-    message.success(val ? t("settings.exportDirSaved", { dir: val }) : t("settings.exportDirReset"));
-  } catch (e) {
-    message.error(String(e));
-  }
-}
-
-/** 清除导出目录 */
-async function clearExportDir() {
-  exportDirDraft.value = "";
-  try {
-    await persistExportDir("");
-    message.success(t("settings.exportDirReset"));
-  } catch (e) {
-    message.error(String(e));
-  }
-}
 
 const locale = localeState;
 
@@ -223,7 +138,7 @@ async function setMinimizeToTray(v: boolean) {
   settingsLoading.value = true;
   try {
     settings.value.minimizeToTray = v;
-    await setAppSettings({ minimizeToTray: v, exportDir: settings.value.exportDir });
+    await setAppSettings({ minimizeToTray: v });
   } finally {
     settingsLoading.value = false;
   }
@@ -237,7 +152,6 @@ onMounted(async () => {
   }
   try {
     settings.value = await getAppSettings();
-    exportDirDraft.value = settings.value.exportDir || "";
   } catch {
     /* 忽略 */
   }
@@ -318,21 +232,6 @@ onMounted(async () => {
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
-}
-.dir-picker {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.dir-picker .n-input {
-  flex: 1;
-}
-.dir-clear {
-  cursor: pointer;
-  padding: 0 4px;
-}
-.dir-clear:hover {
-  color: #e5484d;
 }
 .project-links {
   display: flex;

@@ -71,22 +71,6 @@
         </n-space>
       </div>
 
-      <!-- 导入 / 导出 -->
-      <input
-        ref="importInput"
-        type="file"
-        accept=".json,application/json"
-        style="display: none"
-        @change="onImportFile"
-      />
-      <div class="conn-import-export">
-        <span class="conn-import-icon" :title="t('connections.exportTitle')" @click="doExport">
-          <svg width="18" height="18" viewBox="0 0 512 512" fill="currentColor"><path d="M382.56 233.376c-5.12-5.12-13.44-5.12-18.56 0L264 333.568V56c0-7.36-5.98-13.28-13.28-13.28S237.44 48.64 237.44 56v277.568L137.28 233.376c-5.12-5.12-13.44-5.12-18.56 0s-5.12 13.44 0 18.56l122.88 122.88c2.56 2.56 5.92 3.84 9.28 3.84s6.72-1.28 9.28-3.84l122.88-122.88c5.12-5.12 5.12-13.44 0-18.56zM432 352v96H80v-96c0-7.36-5.98-13.28-13.28-13.28S53.44 344.64 53.44 352v104c0 4.8 2.08 9.12 5.44 12.16A13 13 0 0 0 70.72 472h370.56a13 13 0 0 0 11.84-7.84 13 13 0 0 0 1.44-4.8V352c0-7.36-5.98-13.28-13.28-13.28S432 344.64 432 352z"/></svg>
-        </span>
-        <span class="conn-import-icon" :title="t('connections.importTitle')" @click="triggerImport">
-          <svg width="18" height="18" viewBox="0 0 512 512" fill="currentColor"><path d="M320 96h64v-17.07C384 60.4 358.27 64 332.27 64h-18.67C280 64 256 48 256 32 232 48 208 64 176 64h-20C130 64 128 60.4 128 78.93V96h64zM256 256c57.47 0 104-46.53 104-104v-16c0-13.64-13.4-24-32-24H208c-18.6 0-32 10.36-32 24v16c0 57.47 46.53 104 104 104zM80 205.33c-7.36 0-13.33 5.97-13.33 13.33 0 3.6.7 6.4 1.33 9.33H54.4c-5.2 0-10.4.94-14.4 3.2v53.87c0 7.36 5.97 13.33 13.33 13.33H64v48c-13.33 0-21.33 8-24 24h112v-72h24v-42.13c0-7.36-5.97-13.33-13.33-13.33H32c-2.13 0-5.33-2.29-5.33-6.4v-37.87c0-4.84 5.33-9.33 0-13.33-1.28-1.6-2.67-2.67-4-3.47-1.07-.67-2.4-1.2-3.73-1.6H80zM337.78 283.31c-5.65-3.6-13.17-3.97-18.42-2.13L288 304.76V288c0-8.84-8.28-16-18.33-16H242.33C232.28 272 224 279.16 224 288v16.76l0 0-31.36-23.58c-5.25-1.84-12.77-1.47-18.42 2.13C148.48 301 140.9 317.47 139.4 338.5c-2.15 36.7 2.13 49.47 4.26 57.09 3.2 11.43 7.03 25.12 7.03 25.12 4.8 16.74 20.76 20.29 26.3 20.29h4.6c8.38 0 15.16-6.34 15.16-14.61 0-3.56-9.6.26-20 0 9.94-2.44 10.72-8.41 10.72-14.16 0-7.69-4.93-11.77-9.89-13.67-1.78-.68-3.52-1.32-3.52-1.32h67.46c1.24 0 4.97-.08 5.31 1.31 4.53 18.69 15.7 20.33 21.4 20.33 4.75 0 4.69-1.43 4.69.53 0 1.28-1.23 2.15-1.23 4.09 0 10.84 13.04 13.6 13.04 22.48 0 6.46-4.2 10.7-9.31 12.69-3.69 1.44-1.63 3.01-4.16 4.69-4 2.66-8.24 7.91-8.24 9.3 0 4.02 12.8 9.16 12.8 21.65 0 2.32-.13 4.41-.13 6.08 0 3.29 2.82 5.24 6.11 5.24h11.01c4.5 0 6.54-.87 6.54-4.05 0-2.44-.49-7.5-.84-12.26h32.84c.99 14.8-.34 32.92.64 38.16.5 2.67 1.86 3.44 2.21 4.61 0 0 1.53 1.67 3.87 1.67h10.61c5.75 0 10.72-3.37 10.72-9.5 0-3.92-.18-8.34-.06-12.11 18.85 2.16 37.69-2.58 47.79-14.35 19.2-22.37 42.67-103.85 42.67-159.66 0-45.9-27.15-82.92-72.56-96.7zM256 370.67a48 48 0 1 1 0-96 48 48 0 0 1 0 96zm74.67-85.34a21.33 21.33 0 1 1 0-42.66 21.33 21.33 0 0 1 0 42.66z"/></svg>
-        </span>
-      </div>
     </div>
 
     <!-- 可拖动分隔条：连接信息与详情间动态调宽 -->
@@ -225,7 +209,6 @@ import { useRouter } from "vue-router";
 import { NIcon, useMessage } from "naive-ui";
 import { AddOutline, Cube, Grid, SearchOutline } from "@vicons/ionicons5";
 import ConnectionForm from "@/components/ConnectionForm.vue";
-import * as api from "@/api";
 import type { ConnConfig } from "@/types";
 import appLogo from "@/assets/logo.png";
 import { useConnectionStore } from "@/store";
@@ -390,52 +373,6 @@ function select(id: string) {
 function openCreate() {
   editing.value = null;
   formVisible.value = true;
-}
-
-// ===== 导入 / 导出（连接列表最下方）=====
-const importInput = ref<HTMLInputElement | null>(null);
-
-/** 导出连接列表到 JSON 文件 */
-async function doExport() {
-  try {
-    const path = await api.exportConnections();
-    message.success(t("connections.exported", { n: store.saved.length, path }));
-  } catch (e) {
-    message.error(String(e));
-  }
-}
-
-function triggerImport() {
-  importInput.value?.click();
-}
-
-/** 选择导入文件后读取并合并 */
-async function onImportFile(ev: Event) {
-  const input = ev.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = "";
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const res = await api.importConnections(text);
-    if (res.imported > 0) {
-      message.success(
-        t("connections.imported", { n: res.imported }) +
-          (res.duplicated > 0
-            ? t("connections.importedDuplicated", { n: res.duplicated })
-            : ""),
-      );
-      // 重新加载连接列表（store.refresh 只刷新状态，需 loadSaved 重新拉取配置）
-      await store.loadSaved();
-      await store.refresh();
-    } else if (res.duplicated > 0) {
-      message.warning(t("connections.allDuplicated", { n: res.duplicated }));
-    } else {
-      message.warning(t("connections.noImportable"));
-    }
-  } catch (e) {
-    message.error(String(e));
-  }
 }
 
 function openEdit(cfg: ConnConfig) {
@@ -623,30 +560,6 @@ function onSaved() {
   align-items: center;
   border-top: 1px solid rgba(128, 128, 128, 0.15);
   padding-top: 10px;
-}
-
-/* 连接列表最下方的导入 / 导出（图标形式） */
-.conn-import-export {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-  padding: 10px 0 0;
-  border-top: 1px solid rgba(128, 128, 128, 0.12);
-}
-.conn-import-export .conn-import-icon {
-  cursor: pointer;
-  color: var(--n-text-color-3, #a0a0a0);
-  transition: color 0.15s ease;
-  background: transparent;
-  border: none;
-  padding: 2px;
-  border-radius: 6px;
-}
-.conn-import-export .conn-import-icon:hover {
-  color: var(--brand, #7dc5eb);
-  background: rgba(125, 197, 235, 0.1);
 }
 
 /* 右栏 */
