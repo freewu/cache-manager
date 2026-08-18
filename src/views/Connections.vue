@@ -1,7 +1,7 @@
 <template>
   <div class="split" ref="splitWrap">
     <!-- ============ 左栏：连接列表 ============ -->
-    <div class="left-pane" :style="{ width: panelWidth + 'px' }" @contextmenu.prevent="openListMenu">
+    <div class="left-pane" :style="{ width: panelWidth + 'px' }">
       <div class="left-header">
         <div class="left-title-wrap">
           <img class="app-logo" :src="appLogo" alt="Cache Manager" />
@@ -56,7 +56,31 @@
       </div>
 
       <div class="left-footer">
-        <span class="muted">{{ t("connections.savedCount", { n: filtered.length }) }}</span>
+        <div class="footer-left">
+          <span class="muted">{{ t("connections.savedCount", { n: filtered.length }) }}</span>
+          <span class="footer-io">
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button text size="small" @click="doExport">
+                  <template #icon>
+                    <n-icon :size="16"><DownloadOutline /></n-icon>
+                  </template>
+                </n-button>
+              </template>
+              {{ t("connections.exportTitle") }}
+            </n-tooltip>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button text size="small" @click="doImport">
+                  <template #icon>
+                    <n-icon :size="16"><CloudUploadOutline /></n-icon>
+                  </template>
+                </n-button>
+              </template>
+              {{ t("connections.importTitle") }}
+            </n-tooltip>
+          </span>
+        </div>
         <n-space v-if="connectedCount > 0" align="center" :size="4">
           <span class="dot dot-ok"></span>
           <n-button
@@ -72,27 +96,6 @@
       </div>
 
     </div>
-
-    <!-- 隐藏的导入文件选择（由右键菜单触发） -->
-    <input
-      ref="importInput"
-      type="file"
-      accept=".json,application/json"
-      style="display: none"
-      @change="onImportFile"
-    />
-
-    <!-- 连接列表右键菜单：导入 / 导出（隐蔽入口） -->
-    <n-dropdown
-      trigger="manual"
-      placement="bottom-start"
-      :show="listMenuVisible"
-      :options="listMenuOptions"
-      :x="listMenuX"
-      :y="listMenuY"
-      @select="onListMenuSelect"
-      @clickoutside="listMenuVisible = false"
-    />
 
     <!-- 可拖动分隔条：连接信息与详情间动态调宽 -->
     <div class="splitter" ref="splitRef" title="拖动调整宽度" @mousedown="startDrag"></div>
@@ -225,9 +228,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { NIcon, useMessage } from "naive-ui";
+import { useMessage } from "naive-ui";
 import { AddOutline, CloudUploadOutline, Cube, DownloadOutline, Grid, SearchOutline } from "@vicons/ionicons5";
 import ConnectionForm from "@/components/ConnectionForm.vue";
 import * as api from "@/api";
@@ -397,61 +400,34 @@ function openCreate() {
   formVisible.value = true;
 }
 
-// ===== 导入 / 导出（连接列表右键菜单，隐藏入口）=====
-const importInput = ref<HTMLInputElement | null>(null);
-const listMenuVisible = ref(false);
-const listMenuX = ref(0);
-const listMenuY = ref(0);
+// ===== 导入 / 导出（左下角图标按钮）=====
 
-const listMenuOptions = computed<any[]>(() => [
-  {
-    label: t("connections.exportTitle"),
-    key: "export",
-    icon: () => h(NIcon, null, { default: () => h(DownloadOutline) }),
-  },
-  {
-    label: t("connections.importTitle"),
-    key: "import",
-    icon: () => h(NIcon, null, { default: () => h(CloudUploadOutline) }),
-  },
-]);
-
-/** 右键弹出导入/导出菜单 */
-function openListMenu(e: MouseEvent) {
-  listMenuX.value = e.clientX;
-  listMenuY.value = e.clientY;
-  listMenuVisible.value = true;
+/** 生成导出文件名：cache-manager-connections-YYYYMMDDHHmm.json */
+function exportFilename() {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  const ts =
+    `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}` +
+    `${p(d.getHours())}${p(d.getMinutes())}`;
+  return `cache-manager-connections-${ts}.json`;
 }
 
-function onListMenuSelect(key: string) {
-  listMenuVisible.value = false;
-  if (key === "export") doExport();
-  else if (key === "import") triggerImport();
-}
-
-/** 导出连接列表到 JSON 文件 */
+/** 导出连接列表：弹出目录选择框，写入 JSON 文件 */
 async function doExport() {
   try {
-    const path = await api.exportConnections();
+    const path = await api.exportConnectionsPick(exportFilename());
+    if (path === null) return; // 用户取消选择目录
     message.success(t("connections.exported", { n: store.saved.length, path }));
   } catch (e) {
     message.error(String(e));
   }
 }
 
-function triggerImport() {
-  importInput.value?.click();
-}
-
-/** 选择导入文件后读取并合并 */
-async function onImportFile(ev: Event) {
-  const input = ev.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = "";
-  if (!file) return;
+/** 导入连接列表：弹出文件选择框，读取 JSON 并合并 */
+async function doImport() {
   try {
-    const text = await file.text();
-    const res = await api.importConnections(text);
+    const res = await api.importConnectionsPick();
+    if (res === null) return; // 用户取消选择文件
     if (res.imported > 0) {
       message.success(
         t("connections.imported", { n: res.imported }) +
@@ -657,6 +633,18 @@ function onSaved() {
   align-items: center;
   border-top: 1px solid rgba(128, 128, 128, 0.15);
   padding-top: 10px;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-io {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 /* 右栏 */

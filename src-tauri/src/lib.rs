@@ -18,6 +18,7 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             manager: Arc::new(RedisManager::new()),
             memcached: Arc::new(MemcachedManager::new()),
@@ -51,8 +52,8 @@ pub fn run() {
             commands::switch_database,
             commands::load_saved_connections,
             commands::save_connections,
-            commands::export_connections,
-            commands::import_connections,
+            commands::export_connections_pick,
+            commands::import_connections_pick,
             commands::update_tray_menu,
             commands::get_app_settings,
             commands::set_app_settings,

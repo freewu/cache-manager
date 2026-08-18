@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, State};
 use tauri::ipc::Channel;
 
 use crate::error::AppResult;
@@ -117,49 +117,43 @@ pub fn save_connections(app: AppHandle, connections: Vec<ConnConfig>) -> AppResu
     Ok(())
 }
 
-/// 导出连接列表到 JSON 文件，返回文件路径
-/// 目录优先级：设置里的默认导出目录 → 系统下载目录 → 应用配置目录
+/// 弹出目录选择框，将连接列表导出为 JSON 文件（文件名由前端传入，含时间戳）
+/// 用户取消返回 None，否则返回写入的完整文件路径
 #[tauri::command]
-pub fn export_connections(app: AppHandle) -> AppResult<String> {
+pub fn export_connections_pick(app: AppHandle, filename: String) -> AppResult<Option<String>> {
+    use tauri_plugin_dialog::DialogExt;
+    let picked = app.dialog().file().blocking_pick_folder();
+    let Some(dir) = picked.map(|p| p.to_string()) else {
+        return Ok(None);
+    };
     let configs = crate::store::load(&app)?;
     let json = serde_json::to_string_pretty(&configs)?;
-    let settings = crate::store::load_settings(&app);
-    // 1) 用户配置的默认导出目录（存在或可创建）
-    let mut dir: Option<std::path::PathBuf> = settings
-        .export_dir
-        .filter(|d| !d.trim().is_empty())
-        .map(std::path::PathBuf::from);
-    // 2) 系统下载目录
-    if dir.is_none() {
-        dir = std::env::var("USERPROFILE")
-            .ok()
-            .map(|u| std::path::PathBuf::from(u).join("Downloads"))
-            .filter(|p| p.is_dir());
-    }
-    // 3) 应用配置目录
-    let dir = match dir {
-        Some(d) => d,
-        None => {
-            let cfg = app
-                .path()
-                .app_config_dir()
-                .map_err(|e| crate::error::AppError::new(format!("无法获取配置目录: {}", e)))?;
-            cfg
-        }
-    };
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    let path = dir.join(format!("cache-manager-connections-{}.json", secs));
+    let dir = std::path::PathBuf::from(&dir);
+    let path = dir.join(&filename);
     std::fs::create_dir_all(&dir)?;
     std::fs::write(&path, json)?;
-    Ok(path.to_string_lossy().into_owned())
+    Ok(Some(path.to_string_lossy().into_owned()))
+}
+
+/// 弹出文件选择框，导入 JSON 连接列表；用户取消返回 None
+#[tauri::command]
+pub fn import_connections_pick(app: AppHandle) -> AppResult<Option<ImportResult>> {
+    use tauri_plugin_dialog::DialogExt;
+    let picked = app
+        .dialog()
+        .file()
+        .add_filter("JSON", &["json"])
+        .blocking_pick_file();
+    let Some(path) = picked.map(|p| p.to_string()) else {
+        return Ok(None);
+    };
+    let json = std::fs::read_to_string(&path)?;
+    let res = import_connections_inner(&app, json)?;
+    Ok(Some(res))
 }
 
 /// 导入连接列表（JSON）。host:port 与现有连接一致的跳过，返回导入/跳过数量
-#[tauri::command]
-pub fn import_connections(app: AppHandle, json: String) -> AppResult<ImportResult> {
+fn import_connections_inner(app: &AppHandle, json: String) -> AppResult<ImportResult> {
     let incoming: Vec<ConnConfig> = serde_json::from_str(&json)
         .map_err(|e| crate::error::AppError::new(format!("导入文件格式错误: {}", e)))?;
     let mut existing = crate::store::load(&app)?;
@@ -189,8 +183,8 @@ pub fn import_connections(app: AppHandle, json: String) -> AppResult<ImportResul
         imported += 1;
     }
     if imported > 0 {
-        crate::store::save(&app, &existing)?;
-        crate::tray::update_tray_menu(&app);
+        crate::store::save(app, &existing)?;
+        crate::tray::update_tray_menu(app);
     }
     Ok(ImportResult {
         imported,
