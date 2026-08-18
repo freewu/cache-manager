@@ -533,6 +533,10 @@ async function doCreate() {
     message.success(t("explorer.created", { name }));
     createVisible.value = false;
     pattern.value = "*";
+    // memcached 的 cachedump 列表对新写入的 key 有异步一致性，延时后再拉，避免新 key 不出现
+    if (isMemcached.value) {
+      await new Promise((r) => setTimeout(r, 300));
+    }
     await reloadKeys();
     await selectKey(name);
   } catch (e) {
