@@ -80,12 +80,8 @@
         @change="onImportFile"
       />
       <div class="conn-import-export">
-        <n-button size="small" secondary quaternary :title="t('connections.exportTitle')" @click="doExport">
-          <template #icon><n-icon><CloudDownloadOutline /></n-icon></template>
-        </n-button>
-        <n-button size="small" secondary quaternary :title="t('connections.importTitle')" @click="triggerImport">
-          <template #icon><n-icon><CloudUploadOutline /></n-icon></template>
-        </n-button>
+        <n-icon class="conn-import-icon" :size="18" :title="t('connections.exportTitle')" @click="doExport"><CloudDownloadOutline /></n-icon>
+        <n-icon class="conn-import-icon" :size="18" :title="t('connections.importTitle')" @click="triggerImport"><CloudUploadOutline /></n-icon>
       </div>
     </div>
 
@@ -634,8 +630,13 @@ function onSaved() {
   border-top: 1px solid rgba(128, 128, 128, 0.12);
   padding-top: 10px;
 }
-.conn-import-export .n-button {
-  margin: 0;
+.conn-import-export .conn-import-icon {
+  cursor: pointer;
+  color: var(--n-text-color-3, #a0a0a0);
+  transition: color 0.15s ease;
+}
+.conn-import-export .conn-import-icon:hover {
+  color: var(--brand, #7dc5eb);
 }
 
 /* 右栏 */
