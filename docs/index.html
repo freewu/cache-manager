@@ -28,9 +28,9 @@
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); }
   .brand img { width: 28px; height: 28px; border-radius: 6px; }
   .nav-links { display: flex; align-items: center; gap: 20px; font-size: 14px; }
-  .lang-switch { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-  .lang-switch button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  .lang-switch button.active { color: var(--text); border-color: var(--brand); background: rgba(125, 197, 235, 0.12); }
+  .lang-switch select { background: var(--bg-soft); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; outline: none; }
+  .lang-switch select:hover { border-color: var(--brand); }
+  .lang-switch select option { background: var(--bg-soft); color: var(--text); }
   .btn { display: inline-block; background: var(--brand); color: #0f172a; font-weight: 600; padding: 10px 22px; border-radius: 8px; }
   .btn:hover { background: var(--brand-dark); color: #0f172a; }
   .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
@@ -64,8 +64,10 @@
   .shot figcaption { padding: 10px 14px; font-size: 14px; color: var(--muted); }
 
   /* Tech */
-  .tech { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .tech span { background: var(--bg-soft); border: 1px solid var(--border); padding: 8px 18px; border-radius: 8px; font-size: 14px; color: var(--text); }
+  .tech { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .tech a { display: flex; align-items: center; gap: 10px; background: var(--bg-soft); border: 1px solid var(--border); padding: 10px 18px; border-radius: 10px; font-size: 14px; color: var(--text); text-decoration: none; transition: all 0.15s ease; }
+  .tech a:hover { border-color: var(--brand); color: var(--brand); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(125, 197, 235, 0.15); }
+  .tech img { width: 22px; height: 22px; }
 
   /* Footer */
   footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--muted); font-size: 13px; }
@@ -86,9 +88,11 @@
       <a href="#tech" data-i18n="nav.tech">Tech Stack</a>
       <a href="https://github.com/freewu/cache-manager" target="_blank" rel="noopener">GitHub</a>
       <span class="lang-switch">
-        <button data-lang="en" class="active">EN</button>
-        <button data-lang="zh-CN">简体</button>
-        <button data-lang="zh-TW">繁體</button>
+        <select id="langSelect" aria-label="Language">
+          <option value="en">English</option>
+          <option value="zh-CN">简体中文</option>
+          <option value="zh-TW">繁體中文</option>
+        </select>
       </span>
     </nav>
   </div>
@@ -148,7 +152,12 @@
   <div class="container">
     <h2 class="section-title" data-i18n="tech.title">Tech Stack</h2>
     <div class="tech" style="margin-top: 24px;">
-      <span>Tauri 2</span><span>Rust</span><span>Vue 3</span><span>Naive UI</span><span>fred (Redis client)</span><span>tokio</span>
+      <a href="https://tauri.app/" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tauri/tauri-original.svg" alt="Tauri" />Tauri 2</a>
+      <a href="https://www.rust-lang.org/" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-original.svg" alt="Rust" />Rust</a>
+      <a href="https://vuejs.org/" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg" alt="Vue 3" />Vue 3</a>
+      <a href="https://www.naiveui.com/" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg" alt="Naive UI" style="opacity:0.9;" />Naive UI</a>
+      <a href="https://redis.io/" target="_blank" rel="noopener"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg" alt="Redis (fred)" />fred (Redis)</a>
+      <a href="https://tokio.rs/" target="_blank" rel="noopener"><img src="https://cdn.simpleicons.org/tokio" alt="tokio" />tokio</a>
     </div>
   </div>
 </section>
@@ -336,15 +345,12 @@
       const el = document.getElementById(id);
       if (el) el.src = "images/" + imgDir + "/" + IMG_FILES[i] + ".png";
     });
-    document.querySelectorAll(".lang-switch button").forEach(b => {
-      b.classList.toggle("active", b.dataset.lang === lang);
-    });
     localStorage.setItem("cm-site-lang", lang);
+    const sel = document.getElementById("langSelect");
+    if (sel) sel.value = lang;
   }
 
-  document.querySelectorAll(".lang-switch button").forEach(btn => {
-    btn.addEventListener("click", () => applyLang(btn.dataset.lang));
-  });
+  document.getElementById("langSelect").addEventListener("change", e => applyLang(e.target.value));
   applyLang(localStorage.getItem("cm-site-lang") || "en");
 </script>
 </body>
