@@ -1,86 +1,96 @@
-# Cache Manager 管理工具
+# Cache Manager
 
-> 💡 **本项目全程使用 [pi agent](https://github.com/earendil-works/pi) + DeepSeek V4 Flash 进行开发**
+> 💡 **This project was developed entirely using [pi agent](https://github.com/earendil-works/pi) + DeepSeek V4 Flash**
 
-[English](README.en.md) | **中文**
+**English** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
-基于 **Tauri 2 + Rust + Vue 3** 的桌面缓存管理工具，同时支持 **Redis** 与 **Memcached**。
-Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
+A cross-platform desktop cache management tool built with **Tauri 2 + Rust + Vue 3**, supporting both **Redis** and **Memcached**. Redis supports **Standalone / Master-Slave / Sentinel / Cluster** deployment modes.
 
 ![tech](https://img.shields.io/badge/Tauri-2-24c8db) ![tech](https://img.shields.io/badge/Rust-fred-red) ![tech](https://img.shields.io/badge/Vue-3-42b883)
 
-## 功能特性
+## Features
 
-### 连接管理
-- 支持 **Redis**（单机 / 主从 / Sentinel 哨兵 / Cluster 集群）与 **Memcached** 两种类型
-- 支持 ACL 用户名 / 密码认证、TLS/SSL、连接超时配置
-- 连接配置本地持久化（`%APPDATA%/com.cachemanager.app/connections.json`）
-- 一键测试连接、多连接并行管理
-- **连接列表导入 / 导出**：导出为 JSON 文件，可跨机器迁移；导入时自动跳过 host:port 一致的重复配置
-- 系统托盘快速连接已保存的连接（点击即连接并打开）
+### Connection Management
+- Supports **Redis** (Standalone / Master-Slave / Sentinel / Cluster) and **Memcached**
+- ACL username/password authentication, TLS/SSL, connect timeout configuration
+- Connection config persisted locally (`%APPDATA%/com.cachemanager.app/connections.json`)
+- One-click connection test, parallel management of multiple connections
+- **Import / Export connections**: export to JSON for cross-machine migration; automatically skips duplicates with the same host:port on import
+- Quick-connect saved connections from the **system tray** (click to connect and open)
 
-### 键空间浏览器
-- Redis：`SCAN` 游标分页浏览，支持 pattern 搜索与类型过滤（String/Hash/List/Set/ZSet/Stream），集群模式下自动跨节点扫描合并
-- Memcached：通过 `stats items` + `stats cachedump` 枚举全部键（老版本自动回退 `lru_crawler metadump`）
-- **本地模糊查询**：Memcached 键列表在本地过滤，输入任意子串即时模糊匹配（支持 `*` / `?` 通配符），不重复请求服务器
-- 键信息：类型、TTL、长度、内存占用
-- 主从模式下可从 **从库** 读取（读写分离），UI 上切换主/从节点
-- 键列表项悬停可**删除键**（确认弹窗）
+### Key Space Browser
+- Redis: `SCAN` cursor pagination, pattern search and type filter (String/Hash/List/Set/ZSet/Stream); automatic cross-node scan merge in cluster mode
+- Memcached: enumerates all keys via `stats items` + `stats cachedump` (falls back to `lru_crawler metadump` on older servers)
+- **Local fuzzy search**: Memcached keys are filtered locally — type any substring for instant fuzzy matching (`*` / `?` wildcards supported), without repeated server requests
+- Key info: type, TTL, length, memory usage
+- Master-Slave mode supports reading from **replicas** (read/write split), switchable in the UI
+- Hover a key to **delete it** (with confirmation dialog)
 
-### 值查看与编辑
-- **String**：文本/Base64 编码切换编辑，支持 TTL；JSON 值自动格式化高亮展示
-- **Hash**：字段列表，新增/删除字段（大哈希自动 `HSCAN` 分页）
-- **List**：元素列表，`LPUSH`/`RPUSH` 追加、按值删除
-- **Set**：成员列表，增删
-- **ZSet**：成员+分数，增删
-- **Stream**：条目列表，`XADD`/`XDEL`
-- 二进制安全：非 UTF-8 内容自动 Base64 显示
-- 支持创建六种类型的新键，值编辑面板内可直接删除当前键
+### Value View & Edit
+- **String**: text/Base64 encoding toggle, TTL support; JSON values auto-formatted with syntax highlighting
+- **Hash**: field list, add/delete fields (large hashes paginate via `HSCAN`)
+- **List**: element list, `LPUSH`/`RPUSH` append, delete by value
+- **Set**: member list, add/delete
+- **ZSet**: members + scores, add/delete
+- **Stream**: entries, `XADD`/`XDEL`
+- Binary-safe: non-UTF-8 content auto-displayed as Base64
+- Create new keys of all six types; delete the current key directly from the value editor
 
-### 命令行控制台
-- 执行任意 Redis / Memcached 命令（支持带引号的参数解析）
-- Memcached 模式下 `set` 命令智能补全（简写 `set key value [exptime]` 自动转完整协议）
-- 响应以 JSON 格式化展示，标量值直接显示文本
-- 命令历史（↑↓ 切换）、执行耗时统计
+### Command Console
+- Run any Redis / Memcached command (quoted-argument parsing supported)
+- In Memcached mode the `set` command is auto-completed (e.g. `set key value [exptime]` → full protocol)
+- Responses formatted as JSON, scalar values shown as plain text
+- Command history (↑/↓), execution time stats
 
-### 服务器管理
-- **INFO**：分节展示（server/memory/clients/replication/keyspace…）
-- **CONFIG**：查询与修改配置
-- **CLIENT LIST**：客户端连接列表
-- **SLOWLOG**：慢日志查询
-- **拓扑视图**：主从/集群/哨兵节点状态一览
+### Server Management
+- **INFO**: sectioned display (server/memory/clients/replication/keyspace…)
+- **CONFIG**: query and modify configuration
+- **CLIENT LIST**: connected clients
+- **SLOWLOG**: slow query log
+- **Topology view**: master/slave, cluster, sentinel node status overview
 
-### 实时监控
-- **Pub/Sub 订阅**：订阅频道/模式，实时推送消息，支持发布
-- **MONITOR**：实时显示服务器收到的全部命令（单机/主从模式）
+### Real-time Monitoring
+- **Pub/Sub**: subscribe to channels/patterns, real-time message push, publish support
+- **MONITOR**: stream every command received by the server (standalone/master-slave modes)
 
-### 系统托盘与设置
-- 关闭窗口时**最小化到系统托盘**（不退出，常驻后台）
-- 托盘菜单：显示主窗口、**已保存连接的快速连接**（带 Redis/Memcached 类型图标）、退出
-- 独立设置页面（托盘可直达）：**浅色 / 深色 / 跟随系统** 三档主题、关闭行为、**默认导出目录**
-- 单实例运行（重复启动自动聚焦已有窗口）
+### Settings & Experience
+- **简体中文 / 繁體中文 / English** UI — switch language from the settings page or the system tray
+- **Light / Dark / Follow-system** themes
+- **Automatic update check** with a breathing-light badge reminder on the sidebar logo (click to open the releases page)
+- Import / Export buttons at the bottom of the connection list; resizable split panes
+- Close window to **system tray** (keeps running in the background)
+- Tray menu: show main window, **quick-connect saved connections** (with Redis/Memcached type icons), language switch, check for updates, quit
+- Single instance (launching again focuses the existing window)
 
-## 界面预览
+## Screenshots
 
-| Redis 数据浏览 | Memcached 数据浏览 |
+| Connection list | Add connection |
 | --- | --- |
-| ![Redis 数据浏览](docs/images/redis-date.png) | ![Memcached 数据浏览](docs/images/memcache-data.png) |
+| ![Connection list](docs/images/en/connection-list.png) | ![Add connection](docs/images/en/connection-add.png) |
 
-| 设置页面 | 系统托盘 |
+| Redis data browsing | Memcached data browsing |
 | --- | --- |
-| ![设置页面](docs/images/settingpng.png) | ![系统托盘](docs/images/tray.png) |
+| ![Redis data browsing](docs/images/en/redis-data.png) | ![Memcached data browsing](docs/images/en/memcache-data.png) |
 
-## 技术架构
+| Redis server info | Memcached server info |
+| --- | --- |
+| ![Redis server info](docs/images/en/redis-status.png) | ![Memcached server info](docs/images/en/memcache-status.png) |
+
+| Settings |
+| --- |
+| ![Settings](docs/images/en/setting.png) |
+
+## Architecture
 
 ```
 ┌─────────────────────────────┐
-│   Vue 3 + Naive UI 前端       │  Tauri IPC (invoke / Channel)
+│   Vue 3 + Naive UI frontend  │  Tauri IPC (invoke / Channel)
 └──────────────┬──────────────┘
                │
 ┌──────────────▼──────────────┐
-│   Rust 后端 (tauri commands)  │
+│   Rust backend (tauri commands) │
 │  ┌────────────────────────┐  │
-│  │ RedisManager (连接池管理)│  │
+│  │ RedisManager (pool mgmt) │
 │  │  - Single / MasterSlave│  │
 │  │  - Sentinel / Cluster  │  │
 │  │ keys / console / server │  │
@@ -88,7 +98,8 @@ Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
 │  └───────────┬────────────┘  │
 │  ┌───────────▼────────────┐  │
 │  │ MemcachedManager       │  │
-│  │ (自实现文本协议, tokio)  │  │
+│  │ (self-implemented text │  │
+│  │  protocol, tokio)      │  │
 │  └───────────┬────────────┘  │
 └──────────────┼──────────────┘
         ┌──────▼──────┐
@@ -97,132 +108,132 @@ Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
         └─────────────┘
 ```
 
-- **Redis 客户端**：[fred](https://github.com/redis-rs/fred) v10 — 原生支持单机、集群（自动发现/槽位路由/MOVED 重定向）、哨兵（主节点发现/故障转移）、主从复制
-- **Memcached**：自实现文本协议（`memcachedx.rs`，tokio `TcpStream`，零第三方依赖）
-- **协议**：RESP3（自动回退 RESP2），二进制安全
-- **连接池**：每连接独立 `RedisPool`，主从模式为从库建立独立连接池
+- **Redis client**: [fred](https://github.com/redis-rs/fred) v10 — native standalone, cluster (auto-discovery / slot routing / MOVED redirect), sentinel (master discovery / failover), replication
+- **Memcached**: self-implemented text protocol (`memcachedx.rs`, tokio `TcpStream`, zero third-party dependencies)
+- **Protocol**: RESP3 (auto-fallback to RESP2), binary-safe
+- **Connection pool**: dedicated `RedisPool` per connection; replicas get their own pool in master-slave mode
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Prerequisites
 - [Node.js](https://nodejs.org) ≥ 18
-- [Rust](https://www.rust-lang.org) ≥ 1.77（含对应平台工具链）
-- [Tauri 2 前置依赖](https://v2.tauri.app/start/prerequisites/)
+- [Rust](https://www.rust-lang.org) ≥ 1.77 (with platform toolchain)
+- [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/)
 
-### 开发运行
+### Development
 
 ```bash
 npm install
 npm run tauri dev
 ```
 
-### 使用 just 快捷命令（推荐）
+### Using just (recommended)
 
-[just](https://github.com/casey/just) 已用于统一常用开发命令，安装 just 后：
+[just](https://github.com/casey/just) is used to unify common dev commands. After installing just:
 
 ```bash
-just dev       # 调试运行（热重载）
-just build     # 发布构建（免安装单文件 exe）
-just release   # 生成发布产物（exe + 源码包 + hash + git tag）
-just typecheck # 前端类型检查
-just test      # 后端单元测试
+just dev       # dev run (hot reload)
+just build     # release build (portable single-file exe)
+just release   # generate release artifacts (exe + source tarball + hashes + git tag)
+just typecheck # frontend type check
+just test      # backend unit tests
 ```
 
-运行 `just --list` 查看全部命令（构建 / 测试 / 图标生成等）。
+Run `just --list` to see all recipes (build / tests / icon generation, etc.).
 
-> **跨平台**：justfile 兼容 macOS / Linux / Windows。Windows 需安装 [Git for Windows](https://git-scm.com) 且将 `Git\bin` 加入 PATH（提供 `sh`，just 依赖它执行命令）；macOS / Linux 开箱即用。
+> **Cross-platform**: the justfile works on macOS / Linux / Windows. On Windows, install [Git for Windows](https://git-scm.com) and add `Git\bin` to PATH (provides `sh`, which just uses to run commands); macOS / Linux work out of the box.
 
-### 构建发布包（免安装单文件）
+### Build (portable single file)
 
 ```bash
 npm run tauri build
 ```
 
-构建产物为 **免安装单文件** `src-tauri/target/release/cache-manager.exe`（已复制到 `release/CacheManager.exe`），
-双击即可运行，无需安装、无需额外依赖（仅需 Windows 10/11 自带的 WebView2 运行时）。
+The output is a **portable single file** `src-tauri/target/release/cache-manager.exe` (copied to `release/CacheManager.exe`). Double-click to run — no installation or extra dependencies (only requires the WebView2 runtime bundled with Windows 10/11).
 
-> 版本号：当前版本 **v0.1.1**。版本号统一维护在三处（保持一致）：`Cargo.toml` / `tauri.conf.json` / `package.json`。
-> 构建后 exe 的右键属性 → 详细信息会自动显示文件版本/产品版本（由 tauri-build 从 `Cargo.toml` 写入 VERSIONINFO 资源）。
+> Version: current version is **v0.1.2**. The version number is maintained in three places (keep them in sync): `Cargo.toml` / `tauri.conf.json` / `package.json`.
+> After building, right-click → Properties → Details on the exe shows the file/product version (written by tauri-build from `Cargo.toml` into the VERSIONINFO resource).
 
-### 发布产物（`just release`）
-
-```bash
-just build    # 先构建 exe
-just release  # 生成发布产物
-```
-
-生成到 `release/` 目录：
-
-```
-CacheManager-0.1.1.exe        # 带版本号的免安装 exe
-CacheManager-0.1.1.exe.md5    # exe 的 MD5 校验
-CacheManager-0.1.1.exe.sha1   # exe 的 SHA1 校验
-source-0.1.1.tar.gz           # 源码包（排除 node_modules/target/.git/release/dist 等）
-source-0.1.1.tar.gz.md5       # 源码包 MD5
-source-0.1.1.tar.gz.sha1      # 源码包 SHA1
-```
-
-同时会创建并推送对应版本号的 git tag（`v0.1.1`，已存在时自动跳过）。
-
-### 运行测试
-
-后端包含针对真实 Redis 的冒烟测试（默认 `127.0.0.1:6379`）：
+### Release artifacts (`just release`)
 
 ```bash
-# 单机模式
+just build    # build the exe first
+just release  # generate release artifacts
+```
+
+Generated into `release/`:
+
+```
+CacheManager-0.1.2.exe        # versioned portable exe
+CacheManager-0.1.2.exe.md5    # MD5 checksum of the exe
+CacheManager-0.1.2.exe.sha1   # SHA1 checksum of the exe
+source-0.1.2.tar.gz           # source tarball (excludes node_modules/target/.git/release/dist, etc.)
+source-0.1.2.tar.gz.md5       # MD5 of the tarball
+source-0.1.2.tar.gz.sha1      # SHA1 of the tarball
+```
+
+It also creates and pushes a git tag matching the version (`v0.1.2`, skipped automatically if it already exists).
+
+### Tests
+
+Backend smoke tests against a real Redis (default `127.0.0.1:6379`):
+
+```bash
+# Standalone
 cargo test --test smoke
-# 主从模式（master:6380, replica:6381）
+# Master-Slave (master:6380, replica:6381)
 cargo test --test master_slave
-# 哨兵模式（sentinel:26379, master:6380）
+# Sentinel (sentinel:26379, master:6380)
 cargo test --test sentinel
-# 集群模式（3 节点 7000-7002）
+# Cluster (3 nodes 7000-7002)
 cargo test --test cluster
-# URL 构建单元测试
+# URL building unit tests
 cargo test --test url_build
 ```
 
-## 项目结构
+## Project Structure
 
 ```
-├── src/                        # Vue 3 前端
-│   ├── api/                    # Tauri invoke 封装
-│   ├── components/             # ConnectionForm / ValueEditor
+├── src/                        # Vue 3 frontend
+│   ├── api/                    # Tauri invoke wrappers
+│   ├── components/             # ConnectionForm / ValueEditor / TrayBridge
 │   ├── views/                  # Connections / Explorer / Console / ServerInfo / Monitor / Settings
-│   ├── store/                  # Pinia 连接状态
-│   ├── router/                 # 路由
-│   └── types.ts                # 与后端 DTO 对应的类型
+│   ├── store/                  # Pinia connection state
+│   ├── router/                 # Router
+│   ├── i18n/                   # Multi-language (zh-CN / zh-TW / en)
+│   └── types.ts                # Types matching backend DTOs
 ├── src-tauri/
 │   ├── src/
-│   │   ├── commands.rs         # Tauri 命令层（薄封装，模式路由）
+│   │   ├── commands.rs         # Tauri command layer (thin wrapper, mode routing)
 │   │   ├── redisx/
-│   │   │   ├── mod.rs          # 连接管理器、URL 构建、模式路由
-│   │   │   ├── keys.rs         # 键扫描/值读写
-│   │   │   ├── console.rs      # 任意命令执行
-│   │   │   ├── server.rs       # INFO/CONFIG/CLIENTS/SLOWLOG/拓扑
+│   │   │   ├── mod.rs          # Connection manager, URL building, mode routing
+│   │   │   ├── keys.rs         # Key scan / value read-write
+│   │   │   ├── console.rs      # Arbitrary command execution
+│   │   │   ├── server.rs       # INFO/CONFIG/CLIENTS/SLOWLOG/topology
 │   │   │   └── stream.rs       # Pub/Sub + MONITOR
-│   │   ├── memcachedx.rs       # Memcached 文本协议实现（零依赖）
-│   │   ├── model.rs            # 连接配置模型
-│   │   ├── store.rs            # 配置/设置持久化
-│   │   ├── tray.rs             # 系统托盘（快速连接 + 图标）
-│   │   ├── single_instance.rs  # 单实例端口锁
-│   │   └── error.rs            # 统一错误类型
-│   └── tests/                  # 冒烟测试（单机/主从/哨兵/集群）
-└── scripts/gen_icon.py         # 图标生成脚本
+│   │   ├── memcachedx.rs       # Memcached text protocol (zero deps)
+│   │   ├── model.rs            # Connection config models
+│   │   ├── store.rs            # Config/settings persistence
+│   │   ├── tray.rs             # System tray (quick connect + language + update check)
+│   │   ├── single_instance.rs  # Single-instance port lock
+│   │   └── error.rs            # Unified error type
+│   └── tests/                  # Smoke tests (standalone/master-slave/sentinel/cluster)
+└── scripts/gen_icon.py         # Icon generation script
 ```
 
-## 模式说明
+## Mode Overview
 
-| 模式 | 连接方式 | 支持的操作 |
-|------|---------|-----------|
-| 单机 | 直接连接 | 全部功能 |
-| 主从 | 主库可读写；从库可浏览/读取（UI 切换） | 全部功能；从库只读 |
-| 哨兵 | 通过 Sentinel 发现主节点，支持故障转移 | 全部功能；拓扑显示哨兵/主从状态 |
-| 集群 | 种子节点自动发现，槽位路由，支持 MOVED 重定向 | 全部功能；跨节点 SCAN |
-| Memcached | 直接连接（文本协议） | 键浏览/模糊查询/值编辑/命令行/删除/TTL |
+| Mode | Connection | Supported Operations |
+|------|-----------|---------------------|
+| Standalone | Direct | All features |
+| Master-Slave | Master read/write; replica browse/read (UI switch) | All; replicas read-only |
+| Sentinel | Master discovered via Sentinel, failover support | All; topology shows sentinel/master-slave status |
+| Cluster | Seed node auto-discovery, slot routing, MOVED redirect | All; cross-node SCAN |
+| Memcached | Direct (text protocol) | Key browse/fuzzy search/value edit/console/delete/TTL |
 
-## 注意事项
-- MONITOR 命令仅支持单机/主从模式（Redis 限制）
-- 集群模式不支持 `SELECT`（Redis Cluster 仅 db0）
-- 大键（>5000 元素）查看时自动分页并标记截断
-- Memcached 键枚举依赖 `stats items` / `stats cachedump`（服务端默认开启），被禁用时自动回退 `lru_crawler metadump`
-- 连接导入以 **host:port** 判断重复，重复配置自动跳过
+## Notes
+- `MONITOR` works only in standalone/master-slave modes (Redis limitation)
+- `SELECT` is unsupported in cluster mode (Redis Cluster only has db0)
+- Large keys (>5000 elements) paginate automatically with a truncation marker
+- Memcached key enumeration relies on `stats items` / `stats cachedump` (enabled by default on servers); falls back to `lru_crawler metadump` when disabled
+- Connection import deduplicates by **host:port**; duplicate configs are skipped automatically

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cache Manager — Redis &amp; Memcached Desktop Client</title>
+<meta name="description" content="Cache Manager is a cross-platform desktop cache management tool for Redis and Memcached, built with Tauri 2, Rust and Vue 3." />
+<style>
+  :root {
+    --brand: #7dc5eb;
+    --brand-dark: #5fb3e2;
+    --bg: #0f172a;
+    --bg-soft: #1e293b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --card: #1e293b;
+    --border: #334155;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { color: var(--brand-dark); }
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header { position: sticky; top: 0; z-index: 50; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); }
+  .brand img { width: 28px; height: 28px; border-radius: 6px; }
+  .nav-links { display: flex; align-items: center; gap: 20px; font-size: 14px; }
+  .lang-switch { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .lang-switch button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .lang-switch button.active { color: var(--text); border-color: var(--brand); background: rgba(125, 197, 235, 0.12); }
+  .btn { display: inline-block; background: var(--brand); color: #0f172a; font-weight: 600; padding: 10px 22px; border-radius: 8px; }
+  .btn:hover { background: var(--brand-dark); color: #0f172a; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn.ghost:hover { border-color: var(--brand); color: var(--brand); }
+
+  /* Hero */
+  .hero { padding: 90px 0 60px; text-align: center; background: radial-gradient(ellipse at top, rgba(125, 197, 235, 0.15), transparent 60%); }
+  .hero h1 { font-size: 44px; font-weight: 800; margin-bottom: 16px; }
+  .hero h1 span { color: var(--brand); }
+  .hero p { font-size: 18px; color: var(--muted); max-width: 680px; margin: 0 auto 32px; }
+  .hero .badges { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; }
+  .hero .badges span { font-size: 13px; background: var(--bg-soft); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; color: var(--muted); }
+  .hero .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .hero-img { margin-top: 48px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); max-width: 100%; }
+
+  /* Sections */
+  section { padding: 64px 0; }
+  .section-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 12px; }
+  .section-sub { text-align: center; color: var(--muted); margin-bottom: 40px; font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .card h3 { font-size: 17px; margin-bottom: 10px; color: var(--brand); }
+  .card ul { list-style: none; }
+  .card li { font-size: 14px; color: var(--muted); padding: 3px 0; position: relative; padding-left: 16px; }
+  .card li::before { content: "✓"; position: absolute; left: 0; color: var(--brand); }
+
+  /* Screenshots */
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+  .shot { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .shot img { width: 100%; display: block; border-bottom: 1px solid var(--border); }
+  .shot figcaption { padding: 10px 14px; font-size: 14px; color: var(--muted); }
+
+  /* Tech */
+  .tech { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .tech span { background: var(--bg-soft); border: 1px solid var(--border); padding: 8px 18px; border-radius: 8px; font-size: 14px; color: var(--text); }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--muted); font-size: 13px; }
+  @media (max-width: 640px) { .nav-links { gap: 10px; } .hero h1 { font-size: 32px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <a class="brand" href="#">
+      <img src="../images/en/connection-list.png" alt="Cache Manager" style="object-fit: cover;" />
+      Cache Manager
+    </a>
+    <nav class="nav-links">
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#screenshots" data-i18n="nav.screenshots">Screenshots</a>
+      <a href="#tech" data-i18n="nav.tech">Tech Stack</a>
+      <a href="https://github.com/freewu/cache-manager" target="_blank" rel="noopener">GitHub</a>
+      <span class="lang-switch">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="zh-CN">简体</button>
+        <button data-lang="zh-TW">繁體</button>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1 data-i18n="hero.title">Cache <span>Manager</span></h1>
+    <p data-i18n="hero.subtitle">A cross-platform desktop cache management tool for <strong>Redis</strong> (Standalone / Master-Slave / Sentinel / Cluster) and <strong>Memcached</strong>, built with Tauri 2, Rust &amp; Vue 3.</p>
+    <div class="badges">
+      <span>Tauri 2</span><span>Rust</span><span>Vue 3</span><span>Redis</span><span>Memcached</span>
+    </div>
+    <div class="actions">
+      <a class="btn" href="https://github.com/freewu/cache-manager/releases" target="_blank" rel="noopener" data-i18n="hero.download">Download</a>
+      <a class="btn ghost" href="https://github.com/freewu/cache-manager" target="_blank" rel="noopener" data-i18n="hero.github">View on GitHub</a>
+    </div>
+    <img class="hero-img" id="heroImg" src="../images/en/redis-data.png" alt="Cache Manager" />
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <h2 class="section-title" data-i18n="features.title">Features</h2>
+    <p class="section-sub" data-i18n="features.sub">Everything you need to manage Redis &amp; Memcached in one place</p>
+    <div class="grid">
+      <div class="card"><h3 data-i18n="f.conn.t">Connection Management</h3><ul><li data-i18n="f.conn.1">Redis: Standalone / Master-Slave / Sentinel / Cluster</li><li data-i18n="f.conn.2">Memcached support with text protocol</li><li data-i18n="f.conn.3">ACL auth, TLS/SSL, timeout config</li><li data-i18n="f.conn.4">Import / Export connections as JSON</li></ul></div>
+      <div class="card"><h3 data-i18n="f.keys.t">Key Space Browser</h3><ul><li data-i18n="f.keys.1">SCAN cursor pagination with pattern &amp; type filter</li><li data-i18n="f.keys.2">Cluster cross-node scan merge</li><li data-i18n="f.keys.3">Memcached full key enumeration + local fuzzy search</li><li data-i18n="f.keys.4">Key info: type / TTL / size / memory</li></ul></div>
+      <div class="card"><h3 data-i18n="f.value.t">Value View &amp; Edit</h3><ul><li data-i18n="f.value.1">String / Hash / List / Set / ZSet / Stream</li><li data-i18n="f.value.2">JSON auto-format with syntax highlight</li><li data-i18n="f.value.3">Base64 / binary-safe display</li><li data-i18n="f.value.4">Create &amp; delete keys visually</li></ul></div>
+      <div class="card"><h3 data-i18n="f.console.t">Command Console</h3><ul><li data-i18n="f.console.1">Run any Redis / Memcached command</li><li data-i18n="f.console.2">JSON formatted responses</li><li data-i18n="f.console.3">Command history &amp; execution time</li><li data-i18n="f.console.4">Memcached set auto-completion</li></ul></div>
+      <div class="card"><h3 data-i18n="f.server.t">Server Management</h3><ul><li data-i18n="f.server.1">INFO / CONFIG / CLIENT LIST / SLOWLOG</li><li data-i18n="f.server.2">Topology view for master/slave, cluster, sentinel</li><li data-i18n="f.server.3">Pub/Sub subscribe &amp; publish</li><li data-i18n="f.server.4">Real-time MONITOR</li></ul></div>
+      <div class="card"><h3 data-i18n="f.exp.t">Settings &amp; Experience</h3><ul><li data-i18n="f.exp.1">简体中文 / 繁體中文 / English UI</li><li data-i18n="f.exp.2">Light / Dark / Follow-system themes</li><li data-i18n="f.exp.3">Auto update check with badge reminder</li><li data-i18n="f.exp.4">System tray with quick connect</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- Screenshots -->
+<section id="screenshots" style="background: var(--bg-soft);">
+  <div class="container">
+    <h2 class="section-title" data-i18n="shots.title">Screenshots</h2>
+    <p class="section-sub" data-i18n="shots.sub">See Cache Manager in action</p>
+    <div class="shots">
+      <figure class="shot"><img id="shot-conn-list" src="../images/en/connection-list.png" alt="Connection list" /><figcaption data-i18n="shots.connList">Connection List</figcaption></figure>
+      <figure class="shot"><img id="shot-conn-add" src="../images/en/connection-add.png" alt="Add connection" /><figcaption data-i18n="shots.connAdd">Add Connection</figcaption></figure>
+      <figure class="shot"><img id="shot-redis" src="../images/en/redis-data.png" alt="Redis data browser" /><figcaption data-i18n="shots.redis">Redis Data Browser</figcaption></figure>
+      <figure class="shot"><img id="shot-memcache" src="../images/en/memcache-data.png" alt="Memcached data browser" /><figcaption data-i18n="shots.memcache">Memcached Data Browser</figcaption></figure>
+      <figure class="shot"><img id="shot-redis-st" src="../images/en/redis-status.png" alt="Redis server info" /><figcaption data-i18n="shots.redisSt">Redis Server Info</figcaption></figure>
+      <figure class="shot"><img id="shot-memcache-st" src="../images/en/memcache-status.png" alt="Memcached server info" /><figcaption data-i18n="shots.memcacheSt">Memcached Server Info</figcaption></figure>
+      <figure class="shot"><img id="shot-setting" src="../images/en/setting.png" alt="Settings" /><figcaption data-i18n="shots.settings">Settings</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- Tech -->
+<section id="tech">
+  <div class="container">
+    <h2 class="section-title" data-i18n="tech.title">Tech Stack</h2>
+    <div class="tech" style="margin-top: 24px;">
+      <span>Tauri 2</span><span>Rust</span><span>Vue 3</span><span>Naive UI</span><span>fred (Redis client)</span><span>tokio</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p data-i18n="footer">© Cache Manager · Built with Tauri 2 + Rust + Vue 3</p>
+  </div>
+</footer>
+
+<script>
+  const I18N = {
+    en: {
+      "nav.features": "Features",
+      "nav.screenshots": "Screenshots",
+      "nav.tech": "Tech Stack",
+      "hero.title": 'Cache <span>Manager</span>',
+      "hero.subtitle": "A cross-platform desktop cache management tool for <strong>Redis</strong> (Standalone / Master-Slave / Sentinel / Cluster) and <strong>Memcached</strong>, built with Tauri 2, Rust &amp; Vue 3.",
+      "hero.download": "Download",
+      "hero.github": "View on GitHub",
+      "features.title": "Features",
+      "features.sub": "Everything you need to manage Redis & Memcached in one place",
+      "f.conn.t": "Connection Management",
+      "f.conn.1": "Redis: Standalone / Master-Slave / Sentinel / Cluster",
+      "f.conn.2": "Memcached support with text protocol",
+      "f.conn.3": "ACL auth, TLS/SSL, timeout config",
+      "f.conn.4": "Import / Export connections as JSON",
+      "f.keys.t": "Key Space Browser",
+      "f.keys.1": "SCAN cursor pagination with pattern & type filter",
+      "f.keys.2": "Cluster cross-node scan merge",
+      "f.keys.3": "Memcached full key enumeration + local fuzzy search",
+      "f.keys.4": "Key info: type / TTL / size / memory",
+      "f.value.t": "Value View & Edit",
+      "f.value.1": "String / Hash / List / Set / ZSet / Stream",
+      "f.value.2": "JSON auto-format with syntax highlight",
+      "f.value.3": "Base64 / binary-safe display",
+      "f.value.4": "Create & delete keys visually",
+      "f.console.t": "Command Console",
+      "f.console.1": "Run any Redis / Memcached command",
+      "f.console.2": "JSON formatted responses",
+      "f.console.3": "Command history & execution time",
+      "f.console.4": "Memcached set auto-completion",
+      "f.server.t": "Server Management",
+      "f.server.1": "INFO / CONFIG / CLIENT LIST / SLOWLOG",
+      "f.server.2": "Topology view for master/slave, cluster, sentinel",
+      "f.server.3": "Pub/Sub subscribe & publish",
+      "f.server.4": "Real-time MONITOR",
+      "f.exp.t": "Settings & Experience",
+      "f.exp.1": "简体中文 / 繁體中文 / English UI",
+      "f.exp.2": "Light / Dark / Follow-system themes",
+      "f.exp.3": "Auto update check with badge reminder",
+      "f.exp.4": "System tray with quick connect",
+      "shots.title": "Screenshots",
+      "shots.sub": "See Cache Manager in action",
+      "shots.connList": "Connection List",
+      "shots.connAdd": "Add Connection",
+      "shots.redis": "Redis Data Browser",
+      "shots.memcache": "Memcached Data Browser",
+      "shots.redisSt": "Redis Server Info",
+      "shots.memcacheSt": "Memcached Server Info",
+      "shots.settings": "Settings",
+      "tech.title": "Tech Stack",
+      "footer": "© Cache Manager · Built with Tauri 2 + Rust + Vue 3"
+    },
+    "zh-CN": {
+      "nav.features": "功能特性",
+      "nav.screenshots": "界面预览",
+      "nav.tech": "技术栈",
+      "hero.title": 'Cache <span>Manager</span>',
+      "hero.subtitle": "一款跨平台桌面缓存管理工具，同时支持 <strong>Redis</strong>（单机 / 主从 / Sentinel / Cluster）与 <strong>Memcached</strong>，基于 Tauri 2、Rust 与 Vue 3 构建。",
+      "hero.download": "下载",
+      "hero.github": "访问 GitHub",
+      "features.title": "功能特性",
+      "features.sub": "一站式管理 Redis 与 Memcached",
+      "f.conn.t": "连接管理",
+      "f.conn.1": "Redis：单机 / 主从 / Sentinel / Cluster",
+      "f.conn.2": "支持 Memcached（文本协议）",
+      "f.conn.3": "ACL 认证、TLS/SSL、超时配置",
+      "f.conn.4": "连接列表 JSON 导入 / 导出",
+      "f.keys.t": "键空间浏览器",
+      "f.keys.1": "SCAN 游标分页、pattern 与类型过滤",
+      "f.keys.2": "集群模式跨节点扫描合并",
+      "f.keys.3": "Memcached 全量枚举 + 本地模糊查询",
+      "f.keys.4": "键信息：类型 / TTL / 大小 / 内存",
+      "f.value.t": "值查看与编辑",
+      "f.value.1": "String / Hash / List / Set / ZSet / Stream",
+      "f.value.2": "JSON 自动格式化与高亮",
+      "f.value.3": "Base64 / 二进制安全显示",
+      "f.value.4": "可视化创建与删除键",
+      "f.console.t": "命令行控制台",
+      "f.console.1": "执行任意 Redis / Memcached 命令",
+      "f.console.2": "JSON 格式化响应",
+      "f.console.3": "命令历史与耗时统计",
+      "f.console.4": "Memcached set 命令智能补全",
+      "f.server.t": "服务器管理",
+      "f.server.1": "INFO / CONFIG / CLIENT LIST / SLOWLOG",
+      "f.server.2": "主从 / 集群 / 哨兵拓扑视图",
+      "f.server.3": "Pub/Sub 订阅与发布",
+      "f.server.4": "实时 MONITOR 监控",
+      "f.exp.t": "设置与体验",
+      "f.exp.1": "简体中文 / 繁體中文 / English 界面",
+      "f.exp.2": "浅色 / 深色 / 跟随系统主题",
+      "f.exp.3": "新版本自动检查与徽标提醒",
+      "f.exp.4": "系统托盘快速连接",
+      "shots.title": "界面预览",
+      "shots.sub": "直观感受 Cache Manager",
+      "shots.connList": "连接列表",
+      "shots.connAdd": "新建连接",
+      "shots.redis": "Redis 数据浏览",
+      "shots.memcache": "Memcached 数据浏览",
+      "shots.redisSt": "Redis 服务器信息",
+      "shots.memcacheSt": "Memcached 服务器信息",
+      "shots.settings": "设置页面",
+      "tech.title": "技术栈",
+      "footer": "© Cache Manager · 基于 Tauri 2 + Rust + Vue 3 构建"
+    },
+    "zh-TW": {
+      "nav.features": "功能特性",
+      "nav.screenshots": "介面預覽",
+      "nav.tech": "技術棧",
+      "hero.title": 'Cache <span>Manager</span>',
+      "hero.subtitle": "一款跨平台桌面快取管理工具，同時支援 <strong>Redis</strong>（單機 / 主從 / Sentinel / Cluster）與 <strong>Memcached</strong>，基於 Tauri 2、Rust 與 Vue 3 構建。",
+      "hero.download": "下載",
+      "hero.github": "前往 GitHub",
+      "features.title": "功能特性",
+      "features.sub": "一站式管理 Redis 與 Memcached",
+      "f.conn.t": "連線管理",
+      "f.conn.1": "Redis：單機 / 主從 / Sentinel / Cluster",
+      "f.conn.2": "支援 Memcached（文字協定）",
+      "f.conn.3": "ACL 認證、TLS/SSL、逾時設定",
+      "f.conn.4": "連線清單 JSON 匯入 / 匯出",
+      "f.keys.t": "鍵空間瀏覽器",
+      "f.keys.1": "SCAN 游標分頁、pattern 與類型篩選",
+      "f.keys.2": "叢集模式跨節點掃描合併",
+      "f.keys.3": "Memcached 全量列舉 + 本地模糊查詢",
+      "f.keys.4": "鍵資訊：類型 / TTL / 大小 / 記憶體",
+      "f.value.t": "值檢視與編輯",
+      "f.value.1": "String / Hash / List / Set / ZSet / Stream",
+      "f.value.2": "JSON 自動格式化與高亮",
+      "f.value.3": "Base64 / 二進位安全顯示",
+      "f.value.4": "視覺化建立與刪除鍵",
+      "f.console.t": "命令列主控台",
+      "f.console.1": "執行任意 Redis / Memcached 指令",
+      "f.console.2": "JSON 格式化回應",
+      "f.console.3": "指令歷史與耗時統計",
+      "f.console.4": "Memcached set 指令智慧補全",
+      "f.server.t": "伺服器管理",
+      "f.server.1": "INFO / CONFIG / CLIENT LIST / SLOWLOG",
+      "f.server.2": "主從 / 叢集 / 哨兵拓撲檢視",
+      "f.server.3": "Pub/Sub 訂閱與發布",
+      "f.server.4": "即時 MONITOR 監控",
+      "f.exp.t": "設定與體驗",
+      "f.exp.1": "简体中文 / 繁體中文 / English 介面",
+      "f.exp.2": "淺色 / 深色 / 跟隨系統主題",
+      "f.exp.3": "新版本自動檢查與徽章提醒",
+      "f.exp.4": "系統托盤快速連線",
+      "shots.title": "介面預覽",
+      "shots.sub": "直觀感受 Cache Manager",
+      "shots.connList": "連線清單",
+      "shots.connAdd": "新增連線",
+      "shots.redis": "Redis 資料瀏覽",
+      "shots.memcache": "Memcached 資料瀏覽",
+      "shots.redisSt": "Redis 伺服器資訊",
+      "shots.memcacheSt": "Memcached 伺服器資訊",
+      "shots.settings": "設定頁面",
+      "tech.title": "技術棧",
+      "footer": "© Cache Manager · 基於 Tauri 2 + Rust + Vue 3 構建"
+    }
+  };
+
+  const IMAGES = {
+    en: "en", "zh-CN": "cn", "zh-TW": "tc"
+  };
+  const IMG_IDS = ["heroImg", "shot-conn-list", "shot-conn-add", "shot-redis", "shot-memcache", "shot-redis-st", "shot-memcache-st", "shot-setting"];
+  const IMG_FILES = ["redis-data", "connection-list", "connection-add", "redis-data", "memcache-data", "redis-status", "memcache-status", "setting"];
+
+  function applyLang(lang) {
+    const dict = I18N[lang] || I18N.en;
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      el.innerHTML = dict[el.dataset.i18n] || el.innerHTML;
+    });
+    document.documentElement.lang = lang;
+    const imgDir = IMAGES[lang] || "en";
+    IMG_IDS.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.src = "../images/" + imgDir + "/" + IMG_FILES[i] + ".png";
+    });
+    document.querySelectorAll(".lang-switch button").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === lang);
+    });
+    localStorage.setItem("cm-site-lang", lang);
+  }
+
+  document.querySelectorAll(".lang-switch button").forEach(btn => {
+    btn.addEventListener("click", () => applyLang(btn.dataset.lang));
+  });
+  applyLang(localStorage.getItem("cm-site-lang") || "en");
+</script>
+</body>
+</html>
