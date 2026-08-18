@@ -64,4 +64,4 @@ test-cluster:
 
 # 从 logo.png 重新生成全套应用图标（src-tauri/icons）
 icon:
-    npx tauri icon logo.png
+    npx tauri icon docs/logo.png
