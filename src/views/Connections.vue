@@ -629,14 +629,12 @@ function onSaved() {
 .conn-import-export {
   margin-top: auto;
   display: flex;
-  justify-content: space-around;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 4px;
   border-top: 1px solid rgba(128, 128, 128, 0.12);
   padding-top: 10px;
 }
 .conn-import-export .n-button {
-  flex: 1;
-  max-width: 90px;
   margin: 0;
 }
 
