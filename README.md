@@ -15,7 +15,6 @@ A cross-platform desktop cache management tool built with **Tauri 2 + Rust + Vue
 - ACL username/password authentication, TLS/SSL, connect timeout configuration
 - Connection config persisted locally (`%APPDATA%/com.cachemanager.app/connections.json`)
 - One-click connection test, parallel management of multiple connections
-- **Import / Export connections**: export to JSON for cross-machine migration; automatically skips duplicates with the same host:port on import
 - Quick-connect saved connections from the **system tray** (click to connect and open)
 
 ### Key Space Browser
@@ -57,7 +56,7 @@ A cross-platform desktop cache management tool built with **Tauri 2 + Rust + Vue
 - **简体中文 / 繁體中文 / English** UI — switch language from the settings page or the system tray
 - **Light / Dark / Follow-system** themes
 - **Automatic update check** with a breathing-light badge reminder on the sidebar logo (click to open the releases page)
-- Import / Export buttons at the bottom of the connection list; resizable split panes
+- Resizable split panes between the connection list and the detail panel
 - Close window to **system tray** (keeps running in the background)
 - Tray menu: show main window, **quick-connect saved connections** (with Redis/Memcached type icons), language switch, check for updates, quit
 - Single instance (launching again focuses the existing window)
@@ -236,4 +235,3 @@ cargo test --test url_build
 - `SELECT` is unsupported in cluster mode (Redis Cluster only has db0)
 - Large keys (>5000 elements) paginate automatically with a truncation marker
 - Memcached key enumeration relies on `stats items` / `stats cachedump` (enabled by default on servers); falls back to `lru_crawler metadump` when disabled
-- Connection import deduplicates by **host:port**; duplicate configs are skipped automatically

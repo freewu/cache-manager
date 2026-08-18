@@ -16,7 +16,6 @@ Redis 支援 **單機 / 主從 / Sentinel / Cluster** 四種部署模式。
 - 支援 ACL 使用者名稱 / 密碼認證、TLS/SSL、連線逾時設定
 - 連線設定本地持久化（`%APPDATA%/com.cachemanager.app/connections.json`）
 - 一鍵測試連線、多連線並行管理
-- **連線清單匯入 / 匯出**：匯出為 JSON 檔案，可跨機器遷移；匯入時自動跳過 host:port 一致的重複設定
 - 系統托盤快速連線已儲存的連線（點擊即連線並開啟）
 
 ### 鍵空間瀏覽器
@@ -58,7 +57,7 @@ Redis 支援 **單機 / 主從 / Sentinel / Cluster** 四種部署模式。
 - **简体中文 / 繁體中文 / English** 介面，設定頁或系統托盤一鍵切換語言
 - **淺色 / 深色 / 跟隨系統** 三檔主題
 - **新版本自動檢查**：側邊欄 logo 右上角呼吸燈徽章提醒（點擊直達 Releases 頁）
-- 連線清單底部匯入 / 匯出按鈕，連線資訊與詳情面板可拖動調寬
+- 連線資訊與詳情面板可拖動調寬
 - 關閉視窗時**最小化到系統托盤**（不退出，常駐背景）
 - 托盤選單：顯示主視窗、**已儲存連線的快速連線**（帶 Redis/Memcached 類型圖示）、語言切換、檢查更新、結束
 - 單一實例執行（重複啟動自動聚焦既有視窗）
@@ -237,4 +236,3 @@ cargo test --test url_build
 - 叢集模式不支援 `SELECT`（Redis Cluster 僅 db0）
 - 大鍵（>5000 元素）檢視時自動分頁並標記截斷
 - Memcached 鍵列舉依賴 `stats items` / `stats cachedump`（伺服器預設開啟），被停用時自動回退 `lru_crawler metadump`
-- 連線匯入以 **host:port** 判斷重複，重複設定自動跳過

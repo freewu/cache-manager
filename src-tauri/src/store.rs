@@ -31,8 +31,6 @@ fn settings_path(app: &AppHandle) -> AppResult<std::path::PathBuf> {
 pub struct AppSettings {
     /// 关闭主窗口时最小化到系统托盘（false 则直接退出）
     pub minimize_to_tray: bool,
-    /// 连接导出默认目录（空则用系统下载目录）
-    pub export_dir: Option<String>,
     /// 界面语言：zh-CN / zh-TW / en（供托盘切换使用）
     pub locale: String,
 }
@@ -41,7 +39,6 @@ impl Default for AppSettings {
     fn default() -> Self {
         Self {
             minimize_to_tray: true,
-            export_dir: None,
             locale: "zh-CN".to_string(),
         }
     }

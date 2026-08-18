@@ -16,7 +16,6 @@ Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
 - 支持 ACL 用户名 / 密码认证、TLS/SSL、连接超时配置
 - 连接配置本地持久化（`%APPDATA%/com.cachemanager.app/connections.json`）
 - 一键测试连接、多连接并行管理
-- **连接列表导入 / 导出**：导出为 JSON 文件，可跨机器迁移；导入时自动跳过 host:port 一致的重复配置
 - 系统托盘快速连接已保存的连接（点击即连接并打开）
 
 ### 键空间浏览器
@@ -58,7 +57,7 @@ Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
 - **简体中文 / 繁體中文 / English** 界面，设置页或系统托盘一键切换语言
 - **浅色 / 深色 / 跟随系统** 三档主题
 - **新版本自动检查**：侧边栏 logo 右上角呼吸灯徽标提醒（点击直达 Releases 页）
-- 连接列表底部导入 / 导出按钮，连接信息与详情面板可拖动调宽
+- 连接信息与详情面板可拖动调宽
 - 关闭窗口时**最小化到系统托盘**（不退出，常驻后台）
 - 托盘菜单：显示主窗口、**已保存连接的快速连接**（带 Redis/Memcached 类型图标）、语言切换、检查更新、退出
 - 单实例运行（重复启动自动聚焦已有窗口）
@@ -237,4 +236,3 @@ cargo test --test url_build
 - 集群模式不支持 `SELECT`（Redis Cluster 仅 db0）
 - 大键（>5000 元素）查看时自动分页并标记截断
 - Memcached 键枚举依赖 `stats items` / `stats cachedump`（服务端默认开启），被禁用时自动回退 `lru_crawler metadump`
-- 连接导入以 **host:port** 判断重复，重复配置自动跳过

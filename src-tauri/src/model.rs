@@ -109,16 +109,6 @@ impl ConnConfig {
     }
 }
 
-/// 连接导入结果
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImportResult {
-    /// 成功导入数量
-    pub imported: usize,
-    /// 因 host:port 重复而跳过的数量
-    pub duplicated: usize,
-}
-
 /// 连接状态
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
