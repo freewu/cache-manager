@@ -77,7 +77,7 @@
 <header>
   <div class="container nav">
     <a class="brand" href="#">
-      <img src="../images/en/connection-list.png" alt="Cache Manager" style="object-fit: cover;" />
+      <img src="images/en/connection-list.png" alt="Cache Manager" style="object-fit: cover;" />
       Cache Manager
     </a>
     <nav class="nav-links">
@@ -106,7 +106,7 @@
       <a class="btn" href="https://github.com/freewu/cache-manager/releases" target="_blank" rel="noopener" data-i18n="hero.download">Download</a>
       <a class="btn ghost" href="https://github.com/freewu/cache-manager" target="_blank" rel="noopener" data-i18n="hero.github">View on GitHub</a>
     </div>
-    <img class="hero-img" id="heroImg" src="../images/en/redis-data.png" alt="Cache Manager" />
+    <img class="hero-img" id="heroImg" src="images/en/redis-data.png" alt="Cache Manager" />
   </div>
 </section>
 
@@ -132,13 +132,13 @@
     <h2 class="section-title" data-i18n="shots.title">Screenshots</h2>
     <p class="section-sub" data-i18n="shots.sub">See Cache Manager in action</p>
     <div class="shots">
-      <figure class="shot"><img id="shot-conn-list" src="../images/en/connection-list.png" alt="Connection list" /><figcaption data-i18n="shots.connList">Connection List</figcaption></figure>
-      <figure class="shot"><img id="shot-conn-add" src="../images/en/connection-add.png" alt="Add connection" /><figcaption data-i18n="shots.connAdd">Add Connection</figcaption></figure>
-      <figure class="shot"><img id="shot-redis" src="../images/en/redis-data.png" alt="Redis data browser" /><figcaption data-i18n="shots.redis">Redis Data Browser</figcaption></figure>
-      <figure class="shot"><img id="shot-memcache" src="../images/en/memcache-data.png" alt="Memcached data browser" /><figcaption data-i18n="shots.memcache">Memcached Data Browser</figcaption></figure>
-      <figure class="shot"><img id="shot-redis-st" src="../images/en/redis-status.png" alt="Redis server info" /><figcaption data-i18n="shots.redisSt">Redis Server Info</figcaption></figure>
-      <figure class="shot"><img id="shot-memcache-st" src="../images/en/memcache-status.png" alt="Memcached server info" /><figcaption data-i18n="shots.memcacheSt">Memcached Server Info</figcaption></figure>
-      <figure class="shot"><img id="shot-setting" src="../images/en/setting.png" alt="Settings" /><figcaption data-i18n="shots.settings">Settings</figcaption></figure>
+      <figure class="shot"><img id="shot-conn-list" src="images/en/connection-list.png" alt="Connection list" /><figcaption data-i18n="shots.connList">Connection List</figcaption></figure>
+      <figure class="shot"><img id="shot-conn-add" src="images/en/connection-add.png" alt="Add connection" /><figcaption data-i18n="shots.connAdd">Add Connection</figcaption></figure>
+      <figure class="shot"><img id="shot-redis" src="images/en/redis-data.png" alt="Redis data browser" /><figcaption data-i18n="shots.redis">Redis Data Browser</figcaption></figure>
+      <figure class="shot"><img id="shot-memcache" src="images/en/memcache-data.png" alt="Memcached data browser" /><figcaption data-i18n="shots.memcache">Memcached Data Browser</figcaption></figure>
+      <figure class="shot"><img id="shot-redis-st" src="images/en/redis-status.png" alt="Redis server info" /><figcaption data-i18n="shots.redisSt">Redis Server Info</figcaption></figure>
+      <figure class="shot"><img id="shot-memcache-st" src="images/en/memcache-status.png" alt="Memcached server info" /><figcaption data-i18n="shots.memcacheSt">Memcached Server Info</figcaption></figure>
+      <figure class="shot"><img id="shot-setting" src="images/en/setting.png" alt="Settings" /><figcaption data-i18n="shots.settings">Settings</figcaption></figure>
     </div>
   </div>
 </section>
@@ -334,7 +334,7 @@
     const imgDir = IMAGES[lang] || "en";
     IMG_IDS.forEach((id, i) => {
       const el = document.getElementById(id);
-      if (el) el.src = "../images/" + imgDir + "/" + IMG_FILES[i] + ".png";
+      if (el) el.src = "images/" + imgDir + "/" + IMG_FILES[i] + ".png";
     });
     document.querySelectorAll(".lang-switch button").forEach(b => {
       b.classList.toggle("active", b.dataset.lang === lang);
