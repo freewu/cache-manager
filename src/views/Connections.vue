@@ -56,8 +56,20 @@
       </div>
 
       <div class="left-footer">
-        <div class="footer-left">
-          <span class="muted">{{ t("connections.savedCount", { n: filtered.length }) }}</span>
+        <span class="muted">{{ t("connections.savedCount", { n: filtered.length }) }}</span>
+        <div class="footer-right">
+          <n-space v-if="connectedCount > 0" align="center" :size="4">
+            <span class="dot dot-ok"></span>
+            <n-button
+              size="tiny"
+              type="warning"
+              quaternary
+              :loading="disconnectingAll"
+              @click="disconnectAll"
+            >
+              {{ t("connections.disconnectAll") }}
+            </n-button>
+          </n-space>
           <span class="footer-io">
             <n-tooltip trigger="hover">
               <template #trigger>
@@ -81,18 +93,6 @@
             </n-tooltip>
           </span>
         </div>
-        <n-space v-if="connectedCount > 0" align="center" :size="4">
-          <span class="dot dot-ok"></span>
-          <n-button
-            size="tiny"
-            type="warning"
-            quaternary
-            :loading="disconnectingAll"
-            @click="disconnectAll"
-          >
-            {{ t("connections.disconnectAll") }}
-          </n-button>
-        </n-space>
       </div>
 
     </div>
@@ -635,7 +635,7 @@ function onSaved() {
   padding-top: 10px;
 }
 
-.footer-left {
+.footer-right {
   display: flex;
   align-items: center;
   gap: 8px;
