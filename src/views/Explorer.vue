@@ -185,6 +185,7 @@ import { Cube, Grid, SearchOutline, TrashOutline } from "@vicons/ionicons5";
 import ValueEditor from "@/components/ValueEditor.vue";
 import type { ScanPage, ValueView } from "@/types";
 import * as api from "@/api";
+import { addExecHistory } from "@/history";
 import { useConnectionStore } from "@/store";
 import { t } from "@/i18n";
 
@@ -292,6 +293,28 @@ const totalShown = computed(() => displayKeys.value.length);
 
 const go = (path: string) => router.push(path);
 
+/** 将数据修改操作记录到执行历史（以等价命令形式） */
+function record(cmd: string) {
+  const c = store.byId(connId.value);
+  if (c) {
+    addExecHistory({
+      time: Date.now(),
+      connId: c.id,
+      connName: c.name,
+      mode: c.mode,
+      command: cmd,
+      ok: true,
+      elapsedMs: 0,
+    });
+  }
+}
+
+/** 压缩长值，用于执行历史中的命令展示 */
+function short(v: string, n = 100): string {
+  const s = v.replace(/\s+/g, " ").trim();
+  return s.length > n ? s.slice(0, n) + "…" : s;
+}
+
 onMounted(async () => {
   await loadTopology();
   await reloadKeys();
@@ -381,6 +404,7 @@ async function removeKey(k: string) {
   try {
     await api.deleteKeys(connId.value, [k]);
     message.success(t("explorer.deletedKey", { key: k }));
+    record(`DEL ${k}`);
     keys.value = keys.value.filter((x) => x !== k);
     if (currentKey.value === k) {
       currentKey.value = "";
@@ -531,6 +555,21 @@ async function doCreate() {
       createKind.value === "zset" ? createScore.value : 1,
     );
     message.success(t("explorer.created", { name }));
+    const kind = createKind.value;
+    const val = short(createValue.value);
+    if (isMemcached.value || kind === "string") {
+      record(`SET ${name} ${val}`);
+    } else if (kind === "hash") {
+      record(`HSET ${name} ${short(createField.value)} ${val}`);
+    } else if (kind === "list") {
+      record(`LPUSH ${name} ${val}`);
+    } else if (kind === "set") {
+      record(`SADD ${name} ${val}`);
+    } else if (kind === "zset") {
+      record(`ZADD ${name} ${createScore.value} ${val}`);
+    } else if (kind === "stream") {
+      record(`XADD ${name} * ${short(createField.value)} ${val}`);
+    }
     createVisible.value = false;
     pattern.value = "*";
     // memcached 的 cachedump 列表对新写入的 key 有异步一致性，延时后再拉，避免新 key 不出现
@@ -552,6 +591,7 @@ async function doRename() {
   try {
     await api.renameKey(connId.value, renamingKey.value, renameTarget.value);
     message.success(t("explorer.renamed"));
+    record(`RENAME ${renamingKey.value} ${renameTarget.value}`);
     renameVisible.value = false;
     await reloadKeys();
     if (currentKey.value === renamingKey.value) {

@@ -148,12 +148,37 @@ import { NButton, NPopconfirm, useMessage, useOsTheme } from "naive-ui";
 import type { DataTableColumns } from "naive-ui";
 import type { EncodedValue, HashField, ValueView } from "@/types";
 import * as api from "@/api";
+import { addExecHistory } from "@/history";
+import { useConnectionStore } from "@/store";
 import { themeState } from "@/theme";
 import { t } from "@/i18n";
 
 const props = defineProps<{ connId: string; view: ValueView }>();
 const emit = defineEmits<{ (e: "changed"): void }>();
 const message = useMessage();
+const store = useConnectionStore();
+
+/** 压缩长值，用于执行历史中的命令展示 */
+function short(v: string, n = 100): string {
+  const s = v.replace(/\s+/g, " ").trim();
+  return s.length > n ? s.slice(0, n) + "…" : s;
+}
+
+/** 将数据修改操作记录到执行历史（以等价命令形式） */
+function record(cmd: string) {
+  const c = store.byId(props.connId);
+  if (c) {
+    addExecHistory({
+      time: Date.now(),
+      connId: c.id,
+      connName: c.name,
+      mode: c.mode,
+      command: cmd,
+      ok: true,
+      elapsedMs: 0,
+    });
+  }
+}
 
 const saving = ref(false);
 const newTtl = ref<number | null>(null);
@@ -266,6 +291,7 @@ async function deleteKey() {
   try {
     await api.deleteKeys(props.connId, [props.view.key]);
     message.success(t("valueEditor.deletedKey", { key: props.view.key }));
+    record(`DEL ${props.view.key}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -292,6 +318,12 @@ async function saveString() {
   try {
     await api.setStringValue(props.connId, props.view.key, stringDraft.value, newTtl.value, stringEncoding.value);
     message.success(t("valueEditor.saved"));
+    const ttl = newTtl.value;
+    record(
+      ttl && ttl > 0
+        ? `SET ${props.view.key} ${short(stringDraft.value)} EX ${ttl}`
+        : `SET ${props.view.key} ${short(stringDraft.value)}`,
+    );
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -305,6 +337,8 @@ async function applyTtl() {
   try {
     await api.setTtl(props.connId, props.view.key, newTtl.value ?? -1);
     message.success(t("valueEditor.ttlUpdated"));
+    const ttl = newTtl.value;
+    record(ttl == null || ttl <= 0 ? `PERSIST ${props.view.key}` : `EXPIRE ${props.view.key} ${ttl}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -344,6 +378,7 @@ async function addField() {
   try {
     await api.setHashField(props.connId, props.view.key, newFieldName.value, newFieldValue.value);
     message.success(t("valueEditor.added"));
+    record(`HSET ${props.view.key} ${short(newFieldName.value)} ${short(newFieldValue.value)}`);
     showAddField.value = false;
     newFieldName.value = "";
     newFieldValue.value = "";
@@ -359,6 +394,7 @@ async function deleteField(f: HashField) {
   try {
     await api.deleteHashFields(props.connId, props.view.key, [f.field.value]);
     message.success(t("valueEditor.deleted"));
+    record(`HDEL ${props.view.key} ${short(f.field.value)}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -368,8 +404,10 @@ async function deleteField(f: HashField) {
 async function deleteFields() {
   try {
     await api.deleteHashFields(props.connId, props.view.key, selectedFields.value);
+    const fields = selectedFields.value.map((f) => short(f)).join(" ");
     selectedFields.value = [];
     message.success(t("valueEditor.deleted"));
+    record(`HDEL ${props.view.key} ${fields}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -390,8 +428,10 @@ async function pushList(tail: boolean) {
   if (!newListValue.value) return message.warning(t("valueEditor.needElement"));
   try {
     await api.pushList(props.connId, props.view.key, [newListValue.value], tail);
+    const v = newListValue.value;
     newListValue.value = "";
     message.success(t("valueEditor.pushed"));
+    record(`${tail ? "RPUSH" : "LPUSH"} ${props.view.key} ${short(v)}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -420,8 +460,10 @@ async function addMember() {
   if (!newMember.value.trim()) return message.warning(t("valueEditor.needMember"));
   try {
     await api.addSetMembers(props.connId, props.view.key, [newMember.value]);
+    const mem = newMember.value;
     newMember.value = "";
     message.success(t("valueEditor.added"));
+    record(`SADD ${props.view.key} ${short(mem)}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -432,6 +474,7 @@ async function removeMember(member: string) {
   try {
     await api.removeSetMembers(props.connId, props.view.key, [member]);
     message.success(t("valueEditor.deleted"));
+    record(`SREM ${props.view.key} ${short(member)}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -458,8 +501,11 @@ async function addZMember() {
   if (!newZMember.value.trim()) return message.warning(t("valueEditor.needMember"));
   try {
     await api.addZsetMembers(props.connId, props.view.key, [[newZScore.value, newZMember.value]]);
+    const zmember = newZMember.value;
+    const zscore = newZScore.value;
     newZMember.value = "";
     message.success(t("valueEditor.added"));
+    record(`ZADD ${props.view.key} ${zscore} ${short(zmember)}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -470,6 +516,7 @@ async function removeZMember(member: string) {
   try {
     await api.removeZsetMembers(props.connId, props.view.key, [member]);
     message.success(t("valueEditor.deleted"));
+    record(`ZREM ${props.view.key} ${short(member)}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -502,9 +549,13 @@ async function addStreamEntry() {
   if (!newStreamField.value.trim()) return message.warning(t("valueEditor.needFieldName"));
   try {
     await api.xaddStream(props.connId, props.view.key, newStreamId.value, [[newStreamField.value, newStreamValue.value]]);
+    const sf = newStreamField.value;
+    const sv = newStreamValue.value;
+    const sid = newStreamId.value;
     newStreamField.value = "";
     newStreamValue.value = "";
     message.success(t("valueEditor.added"));
+    record(`XADD ${props.view.key} ${sid || "*"} ${short(sf)} ${short(sv)}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
@@ -515,6 +566,7 @@ async function deleteStreamEntry(id: string) {
   try {
     await api.xdelStream(props.connId, props.view.key, [id]);
     message.success(t("valueEditor.deleted"));
+    record(`XDEL ${props.view.key} ${id}`);
     emit("changed");
   } catch (e) {
     message.error(String(e));
