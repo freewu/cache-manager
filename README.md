@@ -150,7 +150,7 @@ npm run tauri build
 
 The output is a **portable single file** `src-tauri/target/release/cache-manager.exe` (copied to `release/CacheManager.exe`). Double-click to run — no installation or extra dependencies (only requires the WebView2 runtime bundled with Windows 10/11).
 
-> Version: current version is **v0.1.2**. The version number is maintained in three places (keep them in sync): `Cargo.toml` / `tauri.conf.json` / `package.json`.
+> Version: current version is **v0.1.3**. The version number is maintained in three places (keep them in sync): `Cargo.toml` / `tauri.conf.json` / `package.json`.
 > After building, right-click → Properties → Details on the exe shows the file/product version (written by tauri-build from `Cargo.toml` into the VERSIONINFO resource).
 
 ### Release artifacts (`just release`)
@@ -163,15 +163,15 @@ just release  # generate release artifacts
 Generated into `release/`:
 
 ```
-CacheManager-0.1.2.exe        # versioned portable exe
-CacheManager-0.1.2.exe.md5    # MD5 checksum of the exe
-CacheManager-0.1.2.exe.sha1   # SHA1 checksum of the exe
-source-0.1.2.tar.gz           # source tarball (excludes node_modules/target/.git/release/dist, etc.)
-source-0.1.2.tar.gz.md5       # MD5 of the tarball
-source-0.1.2.tar.gz.sha1      # SHA1 of the tarball
+CacheManager-0.1.3.exe        # versioned portable exe
+CacheManager-0.1.3.exe.md5    # MD5 checksum of the exe
+CacheManager-0.1.3.exe.sha1   # SHA1 checksum of the exe
+source-0.1.3.tar.gz           # source tarball (excludes node_modules/target/.git/release/dist, etc.)
+source-0.1.3.tar.gz.md5       # MD5 of the tarball
+source-0.1.3.tar.gz.sha1      # SHA1 of the tarball
 ```
 
-It also creates and pushes a git tag matching the version (`v0.1.2`, skipped automatically if it already exists).
+It also creates and pushes a git tag matching the version (`v0.1.3`, skipped automatically if it already exists).
 
 ### Tests
 

@@ -114,7 +114,7 @@ const osTheme = useOsTheme();
 const isDark = ref(osTheme.value === "dark");
 const message = useMessage();
 
-const version = ref("0.1.2");
+const version = ref("0.1.3");
 const settings = ref({ minimizeToTray: true });
 const settingsLoading = ref(false);
 

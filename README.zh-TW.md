@@ -151,7 +151,7 @@ npm run tauri build
 建置產物為 **免安裝單檔** `src-tauri/target/release/cache-manager.exe`（已複製到 `release/CacheManager.exe`），
 雙擊即可執行，無需安裝、無需額外依賴（僅需 Windows 10/11 內建的 WebView2 執行階段）。
 
-> 版本號：目前版本 **v0.1.2**。版本號統一維護在三處（保持一致）：`Cargo.toml` / `tauri.conf.json` / `package.json`。
+> 版本號：目前版本 **v0.1.3**。版本號統一維護在三處（保持一致）：`Cargo.toml` / `tauri.conf.json` / `package.json`。
 > 建置後 exe 的右鍵屬性 → 詳細資料會自動顯示檔案版本/產品版本（由 tauri-build 從 `Cargo.toml` 寫入 VERSIONINFO 資源）。
 
 ### 發布產物（`just release`）
@@ -164,15 +164,15 @@ just release  # 產生發布產物
 產生到 `release/` 目錄：
 
 ```
-CacheManager-0.1.2.exe        # 帶版本號的免安裝 exe
-CacheManager-0.1.2.exe.md5    # exe 的 MD5 校驗
-CacheManager-0.1.2.exe.sha1   # exe 的 SHA1 校驗
-source-0.1.2.tar.gz           # 原始碼包（排除 node_modules/target/.git/release/dist 等）
-source-0.1.2.tar.gz.md5       # 原始碼包 MD5
-source-0.1.2.tar.gz.sha1      # 原始碼包 SHA1
+CacheManager-0.1.3.exe        # 帶版本號的免安裝 exe
+CacheManager-0.1.3.exe.md5    # exe 的 MD5 校驗
+CacheManager-0.1.3.exe.sha1   # exe 的 SHA1 校驗
+source-0.1.3.tar.gz           # 原始碼包（排除 node_modules/target/.git/release/dist 等）
+source-0.1.3.tar.gz.md5       # 原始碼包 MD5
+source-0.1.3.tar.gz.sha1      # 原始碼包 SHA1
 ```
 
-同時會建立並推送對應版本號的 git tag（`v0.1.2`，已存在時自動跳過）。
+同時會建立並推送對應版本號的 git tag（`v0.1.3`，已存在時自動跳過）。
 
 ### 執行測試
 
