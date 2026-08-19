@@ -102,6 +102,7 @@ export default {
   "console.master": "主庫",
   "console.replica": "從庫 {i}",
   "console.complete": "補全",
+  "console.cleared": "控制台已清空（執行 /clear 可再次清空）",
 
   // ============ 資料瀏覽器 ============
   "explorer.serviceStatus": "服務狀態",

@@ -102,6 +102,7 @@ export default {
   "console.master": "Master",
   "console.replica": "Replica {i}",
   "console.complete": "complete",
+  "console.cleared": "Console cleared (run /clear again to clear)",
 
   // ============ Explorer ============
   "explorer.serviceStatus": "Server Status",

@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { Cube, Grid } from "@vicons/ionicons5";
@@ -95,6 +95,39 @@ const cmdHistory = ref<string[]>([]);
 const historyIdx = ref(-1);
 const outputRef = ref<HTMLElement>();
 const inputRef = ref();
+
+// ===== console 会话持久化：切换页面后再回来内容不丢失 =====
+const consoleStorageKey = () => `cm.console.${connId.value}`;
+const HISTORY_KEEP = 100;
+
+function saveConsoleState() {
+  try {
+    localStorage.setItem(
+      consoleStorageKey(),
+      JSON.stringify({
+        history: history.value.slice(0, HISTORY_KEEP),
+        commandLine: commandLine.value,
+      }),
+    );
+  } catch {
+    // 存储失败（如超出配额）静默忽略
+  }
+}
+
+function restoreConsoleState() {
+  try {
+    const raw = localStorage.getItem(consoleStorageKey());
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (Array.isArray(data.history)) history.value = data.history;
+    if (typeof data.commandLine === "string") commandLine.value = data.commandLine;
+  } catch {
+    // 解析失败忽略
+  }
+}
+
+watch(history, saveConsoleState, { deep: true });
+watch(commandLine, saveConsoleState);
 
 // ===== 命令输入提示（Redis / Memcached 区分）=====
 const suggestions = ref<string[]>([]);
@@ -135,7 +168,9 @@ const replicaOptions = computed(() => [
 const go = (p: string) => router.push(p);
 
 onMounted(async () => {
-  // 从执行历史“重新执行”跳转过来时，预填命令
+  // 恢复上次会话内容（切换页面后回来不丢失）
+  restoreConsoleState();
+  // 从执行历史“重新执行”跳转过来时，预填命令（优先于恢复的草稿）
   const preset = route.query.cmd;
   if (typeof preset === "string" && preset.trim()) {
     commandLine.value = preset;
@@ -154,6 +189,18 @@ onMounted(async () => {
 async function run() {
   const line = commandLine.value.trim();
   if (!line || executing.value) return;
+  // 本地控制台命令：/clear 清空输出（不发送到服务器，不记录执行历史）
+  if (line === "/clear" || line === "/cls") {
+    history.value = [];
+    commandLine.value = "";
+    history.value.push({
+      prompt: ">",
+      command: line,
+      result: { command: line, elapsedMs: 0, ok: true, text: t("console.cleared") },
+    });
+    scrollToBottom();
+    return;
+  }
   executing.value = true;
   try {
     const result = await api.executeCommand(
@@ -224,6 +271,7 @@ function onKeydown(e: KeyboardEvent) {
 
 function clearOutput() {
   history.value = [];
+  saveConsoleState();
 }
 
 function scrollToBottom() {
