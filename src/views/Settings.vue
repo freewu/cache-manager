@@ -101,7 +101,7 @@ import { onMounted, ref } from "vue";
 import { useMessage, useOsTheme } from "naive-ui";
 import { getVersion } from "@tauri-apps/api/app";
 import { BugOutline, LogoGithub } from "@vicons/ionicons5";
-import { getAppSettings, setAppSettings, openUrl as openExternal } from "@/api";
+import { getAppSettings, setAppSettings, openInternal } from "@/api";
 import { setTheme, THEME_ORDER, themeState } from "@/theme";
 import { LOCALES, LOCALE_LABELS, localeState, setLocale, t } from "@/i18n";
 import appLogo from "@/assets/logo.png";
@@ -125,10 +125,10 @@ function onChangeLocale(l: (typeof LOCALES)[number]) {
   message.success(t("settings.language") + ": " + LOCALE_LABELS[l]);
 }
 
-/** 打开外部链接（Tauri 环境走 invoke，浏览器环境回退 window.open） */
+/** 打开链接（应用内嵌窗口打开，不调用系统浏览器；失败时回退新标签页） */
 async function openUrl(url: string) {
   try {
-    await openExternal(url);
+    await openInternal(url);
   } catch {
     window.open(url, "_blank");
   }

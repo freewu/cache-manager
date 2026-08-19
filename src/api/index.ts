@@ -50,6 +50,9 @@ export const setLocale = (locale: string) => call<void>("set_locale", { locale }
 /** 使用系统默认浏览器打开外部链接（项目主页 / Issue 等） */
 export const openUrl = (url: string) => call<void>("open_external", { url });
 
+/** 在应用内嵌窗口中打开外部链接（不调用系统浏览器） */
+export const openInternal = (url: string) => call<void>("open_internal", { url });
+
 // ============ 键操作 ============
 export const scanKeys = (
   connId: string,

@@ -59,6 +59,7 @@ pub fn run() {
             commands::set_app_settings,
             commands::set_locale,
             commands::open_external,
+            commands::open_internal,
             // 键操作
             commands::scan_keys,
             commands::key_info,

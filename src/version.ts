@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { getVersion } from "@tauri-apps/api/app";
-import { openUrl } from "@/api";
+import { openInternal } from "@/api";
 
 /** 新版本检查状态 */
 export const updateState = ref<{
@@ -42,7 +42,7 @@ export async function getAppVersion(): Promise<string> {
 }
 
 /** 开启一条异步连接 */
-export const openReleases = () => openUrl(`https://github.com/${REPO}/releases`);
+export const openReleases = () => openInternal(`https://github.com/${REPO}/releases`);
 
 /** 异步检查是否发布新版本（结果写入 updateState） */
 export async function checkForUpdate(): Promise<void> {

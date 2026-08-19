@@ -243,6 +243,34 @@ pub fn open_external(app: AppHandle, url: String) -> AppResult<()> {
     Ok(())
 }
 
+/// 在应用内嵌窗口中打开外部链接（不调用系统浏览器）
+#[tauri::command]
+pub fn open_internal(app: AppHandle, url: String) -> AppResult<()> {
+    use tauri::{WebviewUrl, WebviewWindowBuilder};
+    let parsed = url::Url::parse(&url)
+        .map_err(|e| crate::error::AppError::new(format!("无效的链接: {}", e)))?;
+    if parsed.scheme() != "http" && parsed.scheme() != "https" {
+        return Err(crate::error::AppError::new(format!(
+            "不支持的链接协议: {}",
+            parsed.scheme()
+        )));
+    }
+    // 每次点击创建独立窗口，避免 label 冲突；用户可自行关闭
+    let label = format!(
+        "ext-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis())
+            .unwrap_or(0)
+    );
+    WebviewWindowBuilder::new(&app, &label, WebviewUrl::External(parsed))
+        .title("Cache Manager")
+        .inner_size(1080.0, 760.0)
+        .center()
+        .build()?;
+    Ok(())
+}
+
 // ==================== 键操作 ====================
 
 #[tauri::command]
