@@ -52,6 +52,7 @@ export default {
   // ============ 侧边栏 ============
   "app.menu.connections": "连接管理",
   "app.menu.connected": "已连接",
+  "app.menu.history": "执行历史",
   "app.menu.settings": "设置",
   "app.updateAvailable": "发现新版本 {version}，点击查看",
   "app.upToDate": "当前已是最新版本",
@@ -100,6 +101,7 @@ export default {
   "console.unknownConn": "未知连接",
   "console.master": "主库",
   "console.replica": "从库 {i}",
+  "console.complete": "补全",
 
   // ============ 数据浏览器 ============
   "explorer.serviceStatus": "服务状态",
@@ -201,7 +203,32 @@ export default {
   "server.col.resp": "RESP",
   "server.col.duration": "耗时(µs)",
   "server.col.client": "客户端",
+  "server.col.desc": "说明",
   "server.modified": "已修改（部分配置可能需要 CONFIG REWRITE 或重启生效）",
+
+  // ============ 执行历史 ============
+  "history.title": "执行历史",
+  "history.searchPlaceholder": "搜索命令或连接名",
+  "history.count": "共 {n} 条",
+  "history.empty": "暂无执行记录，在命令行执行的指令会记录在这里",
+  "history.clear": "清空",
+  "history.clearTitle": "清空执行历史",
+  "history.clearContent": "确定要清空全部执行历史吗？此操作不可恢复。",
+  "history.cleared": "执行历史已清空",
+  "history.copied": "命令已复制",
+  "history.copyFailed": "复制失败",
+  "history.copy": "复制命令",
+  "history.reRun": "重新执行",
+  "history.delete": "删除",
+  "history.ok": "成功",
+  "history.fail": "失败",
+  "history.col.time": "时间",
+  "history.col.conn": "连接",
+  "history.col.mode": "类型",
+  "history.col.command": "命令",
+  "history.col.result": "结果",
+  "history.col.elapsed": "耗时",
+  "history.col.action": "操作",
 
   // ============ 设置 ============
   "settings.title": "设置",

@@ -8,6 +8,7 @@ const router = createRouter({
     { path: "/console/:id", name: "console", component: () => import("@/views/Console.vue") },
     { path: "/server/:id", name: "server", component: () => import("@/views/ServerInfo.vue") },
     { path: "/monitor/:id", name: "monitor", component: () => import("@/views/Monitor.vue") },
+    { path: "/history", name: "history", component: () => import("@/views/History.vue") },
     { path: "/settings", name: "settings", component: () => import("@/views/Settings.vue") },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],

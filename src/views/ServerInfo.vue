@@ -106,13 +106,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, h, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { Cube, Grid } from "@vicons/ionicons5";
 import type { DataTableColumns } from "naive-ui";
 import type { NodeStatus, ServerInfo } from "@/types";
 import * as api from "@/api";
+import { infoFieldDesc } from "@/server-info-dict";
 import { useConnectionStore } from "@/store";
 import { t } from "@/i18n";
 
@@ -150,6 +151,17 @@ const go = (p: string) => router.push(p);
 const infoColumns: DataTableColumns = [
   { title: t("server.col.param"), key: "key", width: 260, ellipsis: true },
   { title: t("server.col.value"), key: "value", ellipsis: true },
+  {
+    title: t("server.col.desc"),
+    key: "desc",
+    width: 320,
+    render: (r: any) => {
+      const d = infoFieldDesc(isMemcached.value ? "memcached" : "redis", r.key);
+      return d
+        ? h("span", { class: "muted" }, d)
+        : h("span", { class: "muted no-desc" }, "—");
+    },
+  },
 ];
 
 const configColumns: DataTableColumns = [
@@ -332,5 +344,8 @@ const roleTag = (r: string) =>
 }
 .muted {
   color: #888;
+}
+.no-desc {
+  opacity: 0.4;
 }
 </style>

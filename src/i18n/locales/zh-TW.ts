@@ -52,6 +52,7 @@ export default {
   // ============ 側邊欄 ============
   "app.menu.connections": "連線管理",
   "app.menu.connected": "已連線",
+  "app.menu.history": "執行歷史",
   "app.menu.settings": "設定",
   "app.updateAvailable": "發現新版本 {version}，點擊查看",
   "app.upToDate": "目前已是最新版本",
@@ -100,6 +101,7 @@ export default {
   "console.unknownConn": "未知連線",
   "console.master": "主庫",
   "console.replica": "從庫 {i}",
+  "console.complete": "補全",
 
   // ============ 資料瀏覽器 ============
   "explorer.serviceStatus": "服務狀態",
@@ -201,7 +203,32 @@ export default {
   "server.col.resp": "RESP",
   "server.col.duration": "耗時(µs)",
   "server.col.client": "用戶端",
+  "server.col.desc": "說明",
   "server.modified": "已修改（部分設定可能需要 CONFIG REWRITE 或重新啟動生效）",
+
+  // ============ 執行歷史 ============
+  "history.title": "執行歷史",
+  "history.searchPlaceholder": "搜尋命令或連線名稱",
+  "history.count": "共 {n} 條",
+  "history.empty": "暫無執行記錄，在命令列執行的指令會記錄在這裡",
+  "history.clear": "清空",
+  "history.clearTitle": "清空執行歷史",
+  "history.clearContent": "確定要清空全部執行歷史嗎？此操作不可恢復。",
+  "history.cleared": "執行歷史已清空",
+  "history.copied": "命令已複製",
+  "history.copyFailed": "複製失敗",
+  "history.copy": "複製命令",
+  "history.reRun": "重新執行",
+  "history.delete": "刪除",
+  "history.ok": "成功",
+  "history.fail": "失敗",
+  "history.col.time": "時間",
+  "history.col.conn": "連線",
+  "history.col.mode": "類型",
+  "history.col.command": "命令",
+  "history.col.result": "結果",
+  "history.col.elapsed": "耗時",
+  "history.col.action": "操作",
 
   // ============ 設定 ============
   "settings.title": "設定",

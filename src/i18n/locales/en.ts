@@ -52,6 +52,7 @@ export default {
   // ============ Sidebar ============
   "app.menu.connections": "Connections",
   "app.menu.connected": "Connected",
+  "app.menu.history": "Execution History",
   "app.menu.settings": "Settings",
   "app.updateAvailable": "New version {version} available, click to view",
   "app.upToDate": "You are up to date",
@@ -100,6 +101,7 @@ export default {
   "console.unknownConn": "Unknown connection",
   "console.master": "Master",
   "console.replica": "Replica {i}",
+  "console.complete": "complete",
 
   // ============ Explorer ============
   "explorer.serviceStatus": "Server Status",
@@ -201,7 +203,32 @@ export default {
   "server.col.resp": "RESP",
   "server.col.duration": "Duration (µs)",
   "server.col.client": "Client",
+  "server.col.desc": "Description",
   "server.modified": "Modified (some configs may require CONFIG REWRITE or restart to take effect)",
+
+  // ============ Execution History ============
+  "history.title": "Execution History",
+  "history.searchPlaceholder": "Search command or connection name",
+  "history.count": "{n} records",
+  "history.empty": "No records yet. Commands executed in the console will be recorded here.",
+  "history.clear": "Clear",
+  "history.clearTitle": "Clear execution history",
+  "history.clearContent": "Are you sure you want to clear all execution history? This cannot be undone.",
+  "history.cleared": "Execution history cleared",
+  "history.copied": "Command copied",
+  "history.copyFailed": "Copy failed",
+  "history.copy": "Copy command",
+  "history.reRun": "Re-run",
+  "history.delete": "Delete",
+  "history.ok": "OK",
+  "history.fail": "Failed",
+  "history.col.time": "Time",
+  "history.col.conn": "Connection",
+  "history.col.mode": "Type",
+  "history.col.command": "Command",
+  "history.col.result": "Result",
+  "history.col.elapsed": "Elapsed",
+  "history.col.action": "Actions",
 
   // ============ Settings ============
   "settings.title": "Settings",

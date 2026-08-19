@@ -34,12 +34,24 @@
     </div>
 
     <div class="input-bar">
+      <div v-if="suggestions.length > 0" class="suggest-bar">
+        <span
+          v-for="(s, i) in suggestions"
+          :key="s"
+          class="suggest-item"
+          :class="{ active: i === suggestIdx }"
+          @mouseenter="suggestIdx = i"
+          @click="applySuggestion(s)"
+        >{{ s }}</span>
+        <span class="suggest-hint muted">Tab {{ t("console.complete") }}</span>
+      </div>
       <n-input
         ref="inputRef"
         v-model:value="commandLine"
         type="textarea"
         :autosize="{ minRows: 1, maxRows: 6 }"
         :placeholder="t('console.placeholder')"
+        @update:value="onInput"
         @keydown="onKeydown"
       />
       <n-button type="primary" :loading="executing" style="margin-top: 6px" @click="run">
@@ -56,6 +68,8 @@ import { useMessage } from "naive-ui";
 import { Cube, Grid } from "@vicons/ionicons5";
 import type { CommandResult } from "@/types";
 import * as api from "@/api";
+import { matchCommands } from "@/console-commands";
+import { addExecHistory } from "@/history";
 import { useConnectionStore } from "@/store";
 import { t } from "@/i18n";
 
@@ -82,6 +96,35 @@ const historyIdx = ref(-1);
 const outputRef = ref<HTMLElement>();
 const inputRef = ref();
 
+// ===== 命令输入提示（Redis / Memcached 区分）=====
+const suggestions = ref<string[]>([]);
+const suggestIdx = ref(0);
+
+/** 根据当前行第一个 token 匹配命令提示 */
+function updateSuggestions() {
+  const line = commandLine.value;
+  const m = line.match(/^\s*(\S*)/);
+  if (!m) {
+    suggestions.value = [];
+    return;
+  }
+  suggestions.value = matchCommands(connMode.value, m[1]);
+  suggestIdx.value = 0;
+}
+
+function onInput() {
+  updateSuggestions();
+}
+
+/** 将建议命令填入输入框（替换第一个 token，保留后续输入） */
+function applySuggestion(cmd: string) {
+  const line = commandLine.value;
+  const m = line.match(/^(\s*)\S*/);
+  commandLine.value = m ? m[1] + cmd + line.slice(m[0].length) : cmd;
+  suggestions.value = [];
+  inputRef.value?.focus?.();
+}
+
 const replicas = ref<number[]>([]);
 const currentReplica = ref<number | null>(null);
 const replicaOptions = computed(() => [
@@ -92,6 +135,14 @@ const replicaOptions = computed(() => [
 const go = (p: string) => router.push(p);
 
 onMounted(async () => {
+  // 从执行历史“重新执行”跳转过来时，预填命令
+  const preset = route.query.cmd;
+  if (typeof preset === "string" && preset.trim()) {
+    commandLine.value = preset;
+    updateSuggestions();
+    await nextTick();
+    inputRef.value?.focus?.();
+  }
   try {
     const nodes = await api.getTopology(connId.value).catch(() => []);
     replicas.value = nodes.filter((n) => n.role === "replica" || n.role === "slave").map((_, i) => i);
@@ -116,6 +167,17 @@ async function run() {
     }
     historyIdx.value = -1;
     commandLine.value = "";
+    suggestions.value = [];
+    // 记录执行历史（成功/失败都记，可回溯）
+    addExecHistory({
+      time: Date.now(),
+      connId: connId.value,
+      connName: connName.value,
+      mode: connMode.value ?? "",
+      command: line,
+      ok: result.ok,
+      elapsedMs: result.elapsedMs,
+    });
     await nextTick();
     scrollToBottom();
   } catch (e) {
@@ -133,6 +195,14 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     run();
+  } else if (e.key === "Tab") {
+    // 命令补全：Tab 选择当前建议
+    if (suggestions.value.length > 0) {
+      e.preventDefault();
+      applySuggestion(suggestions.value[suggestIdx.value] ?? suggestions.value[0]);
+    }
+  } else if (e.key === "Escape") {
+    suggestions.value = [];
   } else if (e.key === "ArrowUp" && !e.shiftKey) {
     e.preventDefault();
     if (cmdHistory.value.length === 0) return;
@@ -224,6 +294,34 @@ function scrollToBottom() {
   border-top: 1px solid rgba(128, 128, 128, 0.15);
   display: flex;
   flex-direction: column;
+}
+.suggest-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.08);
+}
+.suggest-item {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 12px;
+  cursor: pointer;
+  color: #7dc5eb;
+}
+.suggest-item:hover,
+.suggest-item.active {
+  background: rgba(125, 197, 235, 0.18);
+  color: #fff;
+}
+.suggest-hint {
+  margin-left: auto;
+  font-size: 11px;
 }
 .muted {
   color: #888;

@@ -62,6 +62,7 @@ import {
   Cube,
   Grid,
   SettingsOutline,
+  TimeOutline,
 } from "@vicons/ionicons5";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import TrayBridge from "@/components/TrayBridge.vue";
@@ -106,6 +107,7 @@ const activeMenu = computed(() => {
   if (route.name === "explorer") return `explorer:${id}`;
   if (route.name === "server") return `server:${id}`;
   if (route.name === "monitor") return `monitor:${id}`;
+  if (route.name === "history") return "history";
   if (route.name === "settings") return "settings";
   return "connections";
 });
@@ -133,6 +135,11 @@ const menuOptions = computed<any[]>(() => {
     });
   }
   base.push({
+    label: t("app.menu.history"),
+    key: "history",
+    icon: () => h(NIcon, null, { default: () => h(TimeOutline) }),
+  });
+  base.push({
     label: t("app.menu.settings"),
     key: "settings",
     icon: () => h(NIcon, null, { default: () => h(SettingsOutline) }),
@@ -147,6 +154,8 @@ function onMenuSelect(key: string) {
     router.push(`/explorer/${key.split(":")[1]}`);
   } else if (key === "settings") {
     router.push("/settings");
+  } else if (key === "history") {
+    router.push("/history");
   }
 }
 
