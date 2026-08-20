@@ -45,7 +45,20 @@
   .hero .badges { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; }
   .hero .badges span { font-size: 13px; background: var(--bg-soft); border: 1px solid var(--border); padding: 4px 12px; border-radius: 20px; color: var(--muted); }
   .hero .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-  .hero-img { margin-top: 48px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); max-width: 100%; }
+  /* Hero carousel */
+  .hero-carousel { margin-top: 48px; position: relative; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); overflow: hidden; }
+  .hero-carousel .track { display: flex; transition: transform 0.55s cubic-bezier(0.65, 0, 0.35, 1); }
+  .hero-carousel .slide { position: relative; min-width: 100%; }
+  .hero-carousel .slide img { display: block; width: 100%; height: auto; }
+  .hero-carousel .slide-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 16px 36px; background: linear-gradient(transparent, rgba(15, 23, 42, 0.88)); color: var(--text); font-size: 14px; text-align: center; pointer-events: none; }
+  .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.55); color: var(--text); font-size: 20px; line-height: 1; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: background 0.15s ease, color 0.15s ease; }
+  .carousel-btn:hover { background: var(--brand); color: #0f172a; border-color: var(--brand); }
+  .carousel-btn.prev { left: 12px; }
+  .carousel-btn.next { right: 12px; }
+  .carousel-dots { position: absolute; bottom: 12px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; z-index: 10; }
+  .carousel-dots .dot { width: 10px; height: 10px; padding: 0; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.35); cursor: pointer; transition: background 0.2s ease, width 0.2s ease, border-radius 0.2s ease; }
+  .carousel-dots .dot:hover { background: rgba(255, 255, 255, 0.7); }
+  .carousel-dots .dot.active { background: var(--brand); width: 22px; border-radius: 6px; }
 
   /* Sections */
   section { padding: 64px 0; }
@@ -111,7 +124,12 @@
       <a class="btn" href="https://github.com/freewu/cache-manager/releases" target="_blank" rel="noopener" data-i18n="hero.download">Download</a>
       <a class="btn ghost" href="https://github.com/freewu/cache-manager" target="_blank" rel="noopener" data-i18n="hero.github">View on GitHub</a>
     </div>
-    <img class="hero-img" id="heroImg" src="images/en/redis-data.png" alt="Cache Manager" />
+    <div class="hero-carousel" id="heroCarousel">
+      <div class="track" id="heroTrack"></div>
+      <button class="carousel-btn prev" id="heroPrev" aria-label="Previous slide">&#8249;</button>
+      <button class="carousel-btn next" id="heroNext" aria-label="Next slide">&#8250;</button>
+      <div class="carousel-dots" id="heroDots"></div>
+    </div>
   </div>
 </section>
 
@@ -340,10 +358,66 @@
   const IMAGES = {
     en: "en", "zh-CN": "cn", "zh-TW": "tc"
   };
-  const IMG_IDS = ["heroImg", "shot-conn-list", "shot-conn-add", "shot-redis", "shot-memcache", "shot-console", "shot-history", "shot-redis-st", "shot-memcache-st", "shot-setting"];
-  const IMG_FILES = ["redis-data", "connection-list", "connection-add", "redis-data", "memcache-data", "console", "history", "redis-status", "memcache-status", "setting"];
+  const IMG_IDS = ["shot-conn-list", "shot-conn-add", "shot-redis", "shot-memcache", "shot-console", "shot-history", "shot-redis-st", "shot-memcache-st", "shot-setting"];
+  const IMG_FILES = ["connection-list", "connection-add", "redis-data", "memcache-data", "console", "history", "redis-status", "memcache-status", "setting"];
+
+  // Hero carousel
+  const HERO_FILES = ["connection-list", "connection-add", "redis-data", "memcache-data", "console", "history", "redis-status", "memcache-status", "setting"];
+  const HERO_CAPTIONS = ["shots.connList", "shots.connAdd", "shots.redis", "shots.memcache", "shots.console", "shots.history", "shots.redisSt", "shots.memcacheSt", "shots.settings"];
+  let heroIndex = 0;
+  let heroTimer = null;
+
+  function buildHero() {
+    const imgDir = IMAGES[currentLang] || "en";
+    const track = document.getElementById("heroTrack");
+    const dots = document.getElementById("heroDots");
+    track.innerHTML = "";
+    dots.innerHTML = "";
+    HERO_FILES.forEach((f, i) => {
+      const cap = I18N[currentLang][HERO_CAPTIONS[i]] || "";
+      const slide = document.createElement("div");
+      slide.className = "slide";
+      const img = document.createElement("img");
+      img.src = "images/" + imgDir + "/" + f + ".png";
+      img.alt = cap;
+      slide.appendChild(img);
+      const caption = document.createElement("div");
+      caption.className = "slide-caption";
+      caption.textContent = cap;
+      slide.appendChild(caption);
+      track.appendChild(slide);
+      const d = document.createElement("button");
+      d.className = "dot";
+      d.setAttribute("aria-label", cap);
+      d.addEventListener("click", () => goHero(i));
+      dots.appendChild(d);
+    });
+    heroIndex = 0;
+    updateHero();
+    startHero();
+  }
+
+  function updateHero() {
+    document.getElementById("heroTrack").style.transform = "translateX(-" + (heroIndex * 100) + "%)";
+    document.querySelectorAll("#heroDots .dot").forEach((d, i) => {
+      d.classList.toggle("active", i === heroIndex);
+    });
+  }
+
+  function goHero(i) {
+    heroIndex = (i + HERO_FILES.length) % HERO_FILES.length;
+    updateHero();
+    startHero();
+  }
+
+  function nextHero() { goHero(heroIndex + 1); }
+  function prevHero() { goHero(heroIndex - 1); }
+
+  function startHero() { stopHero(); heroTimer = setInterval(nextHero, 4000); }
+  function stopHero() { if (heroTimer) { clearInterval(heroTimer); heroTimer = null; } }
 
   function applyLang(lang) {
+    currentLang = lang;
     const dict = I18N[lang] || I18N.en;
     document.querySelectorAll("[data-i18n]").forEach(el => {
       el.innerHTML = dict[el.dataset.i18n] || el.innerHTML;
@@ -354,13 +428,20 @@
       const el = document.getElementById(id);
       if (el) el.src = "images/" + imgDir + "/" + IMG_FILES[i] + ".png";
     });
+    buildHero();
     localStorage.setItem("cm-site-lang", lang);
     const sel = document.getElementById("langSelect");
     if (sel) sel.value = lang;
   }
 
+  let currentLang = localStorage.getItem("cm-site-lang") || "en";
   document.getElementById("langSelect").addEventListener("change", e => applyLang(e.target.value));
-  applyLang(localStorage.getItem("cm-site-lang") || "en");
+  document.getElementById("heroPrev").addEventListener("click", prevHero);
+  document.getElementById("heroNext").addEventListener("click", nextHero);
+  const carousel = document.getElementById("heroCarousel");
+  carousel.addEventListener("mouseenter", stopHero);
+  carousel.addEventListener("mouseleave", startHero);
+  applyLang(currentLang);
 </script>
 </body>
 </html>
