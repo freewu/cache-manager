@@ -137,13 +137,15 @@
     <h2 class="section-title" data-i18n="shots.title">Screenshots</h2>
     <p class="section-sub" data-i18n="shots.sub">See Cache Manager in action</p>
     <div class="shots">
-      <figure class="shot"><img id="shot-conn-list" src="images/en/connection-list.png" alt="Connection list" /><figcaption data-i18n="shots.connList">Connection List</figcaption></figure>
-      <figure class="shot"><img id="shot-conn-add" src="images/en/connection-add.png" alt="Add connection" /><figcaption data-i18n="shots.connAdd">Add Connection</figcaption></figure>
-      <figure class="shot"><img id="shot-redis" src="images/en/redis-data.png" alt="Redis data browser" /><figcaption data-i18n="shots.redis">Redis Data Browser</figcaption></figure>
-      <figure class="shot"><img id="shot-memcache" src="images/en/memcache-data.png" alt="Memcached data browser" /><figcaption data-i18n="shots.memcache">Memcached Data Browser</figcaption></figure>
-      <figure class="shot"><img id="shot-redis-st" src="images/en/redis-status.png" alt="Redis server info" /><figcaption data-i18n="shots.redisSt">Redis Server Info</figcaption></figure>
-      <figure class="shot"><img id="shot-memcache-st" src="images/en/memcache-status.png" alt="Memcached server info" /><figcaption data-i18n="shots.memcacheSt">Memcached Server Info</figcaption></figure>
-      <figure class="shot"><img id="shot-setting" src="images/en/setting.png" alt="Settings" /><figcaption data-i18n="shots.settings">Settings</figcaption></figure>
+      <figure class="shot"><img id="shot-conn-list" src="images/en/connection-list.png" alt="Connection list" loading="lazy" /><figcaption data-i18n="shots.connList">Connection List</figcaption></figure>
+      <figure class="shot"><img id="shot-conn-add" src="images/en/connection-add.png" alt="Add connection" loading="lazy" /><figcaption data-i18n="shots.connAdd">Add Connection</figcaption></figure>
+      <figure class="shot"><img id="shot-redis" src="images/en/redis-data.png" alt="Redis data browser" loading="lazy" /><figcaption data-i18n="shots.redis">Redis Data Browser</figcaption></figure>
+      <figure class="shot"><img id="shot-memcache" src="images/en/memcache-data.png" alt="Memcached data browser" loading="lazy" /><figcaption data-i18n="shots.memcache">Memcached Data Browser</figcaption></figure>
+      <figure class="shot"><img id="shot-console" src="images/en/console.png" alt="Command console" loading="lazy" /><figcaption data-i18n="shots.console">Command Console</figcaption></figure>
+      <figure class="shot"><img id="shot-history" src="images/en/history.png" alt="Command history" loading="lazy" /><figcaption data-i18n="shots.history">Command History</figcaption></figure>
+      <figure class="shot"><img id="shot-redis-st" src="images/en/redis-status.png" alt="Redis server info" loading="lazy" /><figcaption data-i18n="shots.redisSt">Redis Server Info</figcaption></figure>
+      <figure class="shot"><img id="shot-memcache-st" src="images/en/memcache-status.png" alt="Memcached server info" loading="lazy" /><figcaption data-i18n="shots.memcacheSt">Memcached Server Info</figcaption></figure>
+      <figure class="shot"><img id="shot-setting" src="images/en/setting.png" alt="Settings" loading="lazy" /><figcaption data-i18n="shots.settings">Settings</figcaption></figure>
     </div>
   </div>
 </section>
@@ -220,6 +222,8 @@
       "shots.redisSt": "Redis Server Info",
       "shots.memcacheSt": "Memcached Server Info",
       "shots.settings": "Settings",
+      "shots.console": "Command Console",
+      "shots.history": "Command History",
       "tech.title": "Tech Stack",
       "footer": "© Cache Manager · Built with Tauri 2 + Rust + Vue 3"
     },
@@ -272,6 +276,8 @@
       "shots.redisSt": "Redis 服务器信息",
       "shots.memcacheSt": "Memcached 服务器信息",
       "shots.settings": "设置页面",
+      "shots.console": "命令行控制台",
+      "shots.history": "命令历史",
       "tech.title": "技术栈",
       "footer": "© Cache Manager · 基于 Tauri 2 + Rust + Vue 3 构建"
     },
@@ -324,6 +330,8 @@
       "shots.redisSt": "Redis 伺服器資訊",
       "shots.memcacheSt": "Memcached 伺服器資訊",
       "shots.settings": "設定頁面",
+      "shots.console": "命令列主控台",
+      "shots.history": "指令歷史",
       "tech.title": "技術棧",
       "footer": "© Cache Manager · 基於 Tauri 2 + Rust + Vue 3 構建"
     }
@@ -332,8 +340,8 @@
   const IMAGES = {
     en: "en", "zh-CN": "cn", "zh-TW": "tc"
   };
-  const IMG_IDS = ["heroImg", "shot-conn-list", "shot-conn-add", "shot-redis", "shot-memcache", "shot-redis-st", "shot-memcache-st", "shot-setting"];
-  const IMG_FILES = ["redis-data", "connection-list", "connection-add", "redis-data", "memcache-data", "redis-status", "memcache-status", "setting"];
+  const IMG_IDS = ["heroImg", "shot-conn-list", "shot-conn-add", "shot-redis", "shot-memcache", "shot-console", "shot-history", "shot-redis-st", "shot-memcache-st", "shot-setting"];
+  const IMG_FILES = ["redis-data", "connection-list", "connection-add", "redis-data", "memcache-data", "console", "history", "redis-status", "memcache-status", "setting"];
 
   function applyLang(lang) {
     const dict = I18N[lang] || I18N.en;

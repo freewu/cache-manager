@@ -76,6 +76,10 @@ Redis 支持 **单机 / 主从 / Sentinel / Cluster** 四种部署模式。
 | --- | --- |
 | ![Redis 服务器信息](docs/images/cn/redis-status.png) | ![Memcached 服务器信息](docs/images/cn/memcache-status.png) |
 
+| 命令行控制台 | 命令历史 |
+| --- | --- |
+| ![命令行控制台](docs/images/cn/console.png) | ![命令历史](docs/images/cn/history.png) |
+
 | 设置页面 |
 | --- |
 | ![设置页面](docs/images/cn/setting.png) |

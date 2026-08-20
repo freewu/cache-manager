@@ -75,6 +75,10 @@ A cross-platform desktop cache management tool built with **Tauri 2 + Rust + Vue
 | --- | --- |
 | ![Redis server info](docs/images/en/redis-status.png) | ![Memcached server info](docs/images/en/memcache-status.png) |
 
+| Command Console | Command History |
+| --- | --- |
+| ![Command Console](docs/images/en/console.png) | ![Command History](docs/images/en/history.png) |
+
 | Settings |
 | --- |
 | ![Settings](docs/images/en/setting.png) |
